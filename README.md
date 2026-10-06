@@ -2,7 +2,7 @@ RoBlocks
 A browser-based 3D game platform prototype. Browse games, create your own (Builder, Shooter or Obby), and play instantly on PC, iPad or phone.
 Play
 After enabling GitHub Pages, the game is live at:
-https://YOUR-USERNAME.github.io/roblocks/
+https://zakirm123.github.io/roblocks/
 Run locally
 Open index.html in a browser, or run a local server:
 python3 -m http.server 8000
