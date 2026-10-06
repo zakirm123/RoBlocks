@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- 🔍 GOOGLE SEO META TAGS (This tells Google what to display in search results) -->
+    <title>Official RoBlocks Wiki | Zakir Studio</title>
+    <meta name="description" content="The official encyclopedia for RoBlocks, an independent browser-based 3D game engine platform developed by Zakir at Zakir Studio since 2024.">
+    <meta name="keywords" content="RoBlocks, RoBlocks Wiki, Zakir Studio, Zakir, u/ZakirStudioOfficial, browser game engine, HTML5 game platform">
+    <meta name="author" content="Zakir, Zakir Studio">
+    
+    <!-- Open Graph tags for Discord/Reddit link previews -->
+    <meta property="og:title" content="Official RoBlocks Wiki">
+    <meta property="og:description" content="Explore launch titles, patch notes, and dev history for the browser-based UGC game platform.">
+    <meta property="og:url" content="https://github.io">
+
+    <style>
+        /* 🎨 Official RoBlocks Palette: Deep Charcoal & Vibrant Orange */
+        :root {
+            --charcoal-bg: #121418;
+            --panel-bg: #1C1F26;
+            --orange-primary: #ff793f;
+            --text-light: #F4F5F7;
+            --text-muted: #a0a5b5;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--charcoal-bg);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Responsive Wiki Sidebar */
+        .wiki-sidebar {
+            width: 260px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid #2d3139;
+            padding: 25px;
+            box-sizing: border-box;
+        }
+
+        .wiki-sidebar h2 {
+            color: var(--orange-primary);
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .wiki-sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .wiki-sidebar li {
+            margin-bottom: 15px;
+        }
+
+        .wiki-sidebar a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .wiki-sidebar a:hover, .wiki-sidebar a.active {
+            color: var(--orange-primary);
+        }
+
+        /* Main Content Viewport */
+        .wiki-content {
+            flex: 1;
+            padding: 40px;
+            max-width: 800px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--orange-primary);
+            font-size: 36px;
+            margin-top: 0;
+            border-bottom: 2px solid #2d3139;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--text-light);
+            font-size: 22px;
+            margin-top: 30px;
+        }
+
+        p {
+            line-height: 1.6;
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        /* Technical Info Callout Boxes */
+        .callout-box {
+            background-color: #242933;
+            border-left: 4px solid var(--orange-primary);
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin: 25px 0;
+        }
+
+        .callout-box p {
+            margin: 0;
+            color: var(--text-light);
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--orange-primary);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Wiki Navigation Menu -->
+    <nav class="wiki-sidebar">
+        <h2>RoBlocks Wiki</h2>
+        <ul>
+            <li><a href="#" class="active" onclick="showTab('main')">Main Page</a></li>
+            <li><a href="#" onclick="showTab('founder')">Zakir (Founder)</a></li>
+            <li><a href="#" onclick="showTab('games')">Games Directory</a></li>
+            <li><a href="#" onclick="showTab('updates')">Future Updates</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Dynamic Reading Grid -->
+    <main class="wiki-content">
+        <a href="index.html" class="back-btn">← Back to Game Dashboard</a>
+        
+        <!-- Tab 1: Main Page -->
+        <div id="tab-main" class="wiki-tab">
+            <h1>Welcome to the RoBlocks Wiki</h1>
+            <p>RoBlocks is an independent, browser-based user-generated content (UGC) gaming platform engineered by <strong>Zakir Studio</strong>. It enables users on PC, iPad, and mobile devices to launch cross-platform 3D worlds instantly through a single web URL.</p>
+            
+            <div class="callout-box">
+                <p><strong>💡 Developer Notice:</strong> RoBlocks is completely independent. It is designed around universal access, completely removing the hassle of third-party App Store approval gates or local setup processes.</p>
+            </div>
+        </div>
+
+        <!-- Tab 2: Founder Bio -->
+        <div id="tab-founder" class="wiki-tab" style="display:none;">
+            <h1>Zakir (Developer Profile)</h1>
+            <p><strong>Zakir</strong> is the Founder, CEO, and Principal Systems Architect behind Zakir Studio (u/ZakirStudioOfficial). He officially began development on the RoBlocks engine architecture on <strong>October 19, 2024</strong>.</p>
+            <h2>Platform Contributions</h2>
+            <p>Zakir handles the front-end layout trees, responsive multi-device canvas optimization, simulated Ro-Bucks (R$) transaction logic, and responsive touch pad overlays for mobile tablet clients.</p>
+        </div>
+
+        <!-- Tab 3: Games Catalog -->
+        <div id="tab-games" class="wiki-tab" style="display:none;">
+            <h1>Official Experience Portal</h1>
+            <p>The global system organizes mini-games into structural performance profiles:</p>
+            <h2>Arena Strike</h2>
+            <p><strong>Genre:</strong> Shooter | <strong>Access:</strong> Free<br>High-intensity tactical tracking multiplayer layout.</p>
+            <h2>Lava Escape</h2>
+            <p><strong>Genre:</strong> Obby | <strong>Access:</strong> Free<br>Classic environmental jump-timing test framework.</p>
+        </div>
+
+        <!-- Tab 4: Roadmap -->
+        <div id="tab-updates" class="wiki-tab" style="display:none;">
+            <h1>Future Updates & News</h1>
+            <h2>Active Build: The Friends System</h2>
+            <p>Development is currently moving toward deploying a social network core. This will allow players to query active display names (3-20 characters), track real-time green online signals, and send direct profile requests.</p>
+        </div>
+    </main>
+
+    <!-- UI Tab Switching Script -->
+    <script>
+        function showTab(tabId) {
+            // Hide all tab views
+            document.querySelectorAll('.wiki-tab').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            // Show selected tab view
+            document.getElementById('tab-' + tabId).style.display = 'block';
+            
+            // Toggle active styling on sidebar links
+            document.querySelectorAll('.wiki-sidebar a').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
