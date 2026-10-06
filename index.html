@@ -1,1 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RoBlocks</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{--bg:#f7f7f8;--surface:#fff;--text:#1a1b1f;--muted:#5f6368;--line:#e3e4e8;--hover:#ececf0;--accent:#2f6bff;--play:#1fa84f;--play-h:#188a40;--danger:#c0392b;
+--font:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif;--top:56px;--side:240px;--nav:60px;--r:8px;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121316;--surface:#1b1c20;--text:#f2f3f5;--muted:#a1a5ad;--line:#2b2d33;--hover:#2a2c32;--danger:#ff7b6b}}
+:root[data-theme="dark"]{--bg:#121316;--surface:#1b1c20;--text:#f2f3f5;--muted:#a1a5ad;--line:#2b2d33;--hover:#2a2c32;--danger:#ff7b6b}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 var(--font);-webkit-font-smoothing:antialiased}
+body.playing{overflow:hidden}:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font-family:var(--font)}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;height:var(--top);display:flex;align-items:center;gap:12px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.02em}
+.search{flex:1;max-width:420px;min-width:0;height:36px;border:1px solid var(--line);border-radius:18px;background:var(--bg);color:var(--text);padding:0 16px;font:inherit}
+.userbar{margin-left:auto;display:flex;align-items:center;gap:10px;font-weight:600;white-space:nowrap}
+.btn{height:36px;padding:0 16px;border:0;border-radius:var(--r);background:var(--accent);color:#fff;font:600 14px var(--font);cursor:pointer}
+.btn-2{height:36px;padding:0 14px;border:1px solid var(--line);border-radius:var(--r);background:none;color:var(--text);font:600 14px var(--font);cursor:pointer}
+.shell{display:grid;grid-template-columns:var(--side) 1fr;min-height:calc(100vh - var(--top))}
+.sidebar{position:sticky;top:var(--top);align-self:start;height:calc(100vh - var(--top));padding:12px;background:var(--surface);border-right:1px solid var(--line)}
+.nav{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.nav a{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:var(--r);color:var(--text);text-decoration:none;font-weight:500;font-size:15px}
+.nav a:hover,.nav a[aria-current="page"]{background:var(--hover)}
+.nav svg{width:20px;height:20px;flex:none;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav a[aria-current="page"] svg{stroke:var(--text)}
+main{padding:24px 32px 48px;min-width:0}
+h1{margin:0 0 24px;font-size:28px;font-weight:700;letter-spacing:-.02em}h2{margin:0 0 12px;font-size:20px;font-weight:700}.row{margin-bottom:32px}
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(160px,184px);gap:12px;overflow-x:auto;padding-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px 12px}
+.card{display:block;color:inherit;text-decoration:none;border-radius:var(--r)}
+.thumb{position:relative;aspect-ratio:16/9;width:100%;border-radius:var(--r);background:var(--hover) center/cover}
+.tag{position:absolute;left:8px;bottom:8px;padding:2px 8px;border-radius:10px;background:rgba(20,22,28,.7);color:#fff;font-size:11px;font-weight:600}
+.card-title{margin:8px 0 2px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.card-meta{color:var(--muted);font-size:12px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.chip{height:34px;padding:0 16px;border:1px solid var(--line);border-radius:17px;background:var(--surface);color:var(--text);font:600 14px var(--font);cursor:pointer}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.empty{color:var(--muted);padding:24px 0}
+/* forms */
+.form{display:grid;gap:18px;max-width:560px}
+.field{display:grid;gap:6px;font-weight:600}
+.field small{font-weight:400;color:var(--muted)}
+.in{height:42px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--text);font:400 15px var(--font);width:100%}
+textarea.in{height:84px;padding:10px 12px;resize:vertical}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);font-weight:400;cursor:pointer}
+.opt:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.opt b{display:block}.opt span{color:var(--muted)}
+.cols{display:flex;gap:10px}.cols label{width:44px;height:30px;border-radius:8px;cursor:pointer;border:3px solid transparent}
+.cols input,.opt input{position:absolute;opacity:0;pointer-events:none}.opt input{position:static;opacity:1;pointer-events:auto;margin-top:3px}
+.cols label:has(input:checked){border-color:var(--text)}
+.err{color:var(--danger);min-height:18px;font-weight:500}
+/* dialogs */
+.dlg{width:min(480px,calc(100vw - 32px));padding:0;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);overflow:hidden}
+.dlg::backdrop{background:rgba(0,0,0,.6)}.dlg[open]{animation:pop .18s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.dlg[open]{animation:none}}
+.modal-thumb{aspect-ratio:16/9;background:var(--hover) center/cover}
+.pad-b{padding:20px 24px 24px}.pad-b h2{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
+.muted{color:var(--muted);margin:0 0 12px}
+.btn-play{width:100%;height:56px;border:0;border-radius:var(--r);background:var(--play);color:#fff;font:800 20px var(--font);letter-spacing:.04em;cursor:pointer}
+.btn-play:hover{background:var(--play-h)}
+.btn-ghost{margin-top:8px;width:100%;height:40px;border:0;background:none;color:var(--muted);font:600 14px var(--font);cursor:pointer}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.tabs button{height:48px;border:0;background:none;color:var(--muted);font:600 15px var(--font);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--text);border-color:var(--accent)}
+#auth form{display:grid;gap:14px}
+/* responsive: bottom nav */
+@media (max-width:1024px){
+ .shell{grid-template-columns:1fr}
+ .sidebar{position:fixed;inset:auto 0 0 0;height:calc(var(--nav) + env(safe-area-inset-bottom,0px));padding:0 8px env(safe-area-inset-bottom,0px);border-right:0;border-top:1px solid var(--line);z-index:20}
+ .nav{grid-template-columns:repeat(3,1fr);height:var(--nav);gap:0}.nav .desk-only{display:none}
+ .nav a{flex-direction:column;justify-content:center;gap:2px;height:100%;padding:0;font-size:11px;font-weight:600;border-radius:0;background:none!important}
+ .nav a[aria-current="page"],.nav a[aria-current="page"] svg{color:var(--accent);stroke:var(--accent)}
+ main{padding:20px 16px calc(var(--nav) + 32px + env(safe-area-inset-bottom,0px))}.topbar{padding:0 16px}
+ .rail{grid-auto-columns:minmax(150px,44vw)}#uname{display:none}}
+/* game */
+#game{position:fixed;inset:0;z-index:100;display:none;background:#9ad7ff;touch-action:none;user-select:none;-webkit-user-select:none}
+#game.open{display:block}#canvas{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;left:0;right:0;display:flex;align-items:center;gap:8px;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 0;pointer-events:none}.hud>*{pointer-events:auto}
+.hud-title{font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin-right:auto}
+.hud button{height:40px;padding:0 14px;border:0;border-radius:var(--r);background:rgba(20,22,28,.72);color:#fff;font:600 14px var(--font);cursor:pointer}
+.hud button.on{background:var(--accent)}
+#g-stat{position:absolute;top:calc(60px + env(safe-area-inset-top,0px));left:12px;padding:6px 12px;border-radius:8px;background:rgba(20,22,28,.65);color:#fff;font-weight:700}
+.swatches{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;padding:8px;border-radius:12px;background:rgba(20,22,28,.6)}
+.sw{width:32px;height:32px;border-radius:8px;border:2px solid transparent;cursor:pointer}.sw.on{border-color:#fff}
+.pad{display:none;position:absolute;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));grid-template:repeat(3,52px)/repeat(3,52px);gap:4px}
+.pad button,.jump{border:0;border-radius:12px;background:rgba(20,22,28,.6);color:#fff;font-size:20px;touch-action:none}
+.jump{display:none;position:absolute;right:16px;bottom:calc(24px + env(safe-area-inset-bottom,0px));width:76px;height:76px;border-radius:50%;font:700 14px var(--font)}
+#game:not([data-g="builder"]) .swatches,#game:not([data-g="builder"]) #g-mode{display:none}
+@media (pointer:coarse){.pad{display:grid}.swatches{left:auto;right:16px;transform:none;flex-direction:column}#game[data-g="obby"] .jump{display:block}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="brand">RoBlocks</span>
+  <input class="search" id="q" type="search" placeholder="Search games" aria-label="Search games">
+  <div class="userbar" id="userbar"></div>
+</header>
+<div class="shell">
+  <aside class="sidebar"><nav aria-label="Primary"><ul class="nav">
+    <li><a href="#/home" data-r="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>Home</a></li>
+    <li><a href="#/discover" data-r="discover"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Discover</a></li>
+    <li><a href="#/create" data-r="create"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Create</a></li>
+  </ul></nav></aside>
+  <main id="view"></main>
+</div>
 
+<dialog class="dlg" id="modal" aria-labelledby="m-title">
+  <div class="modal-thumb" id="m-thumb"></div>
+  <div class="pad-b"><h2 id="m-title"></h2><p class="muted" id="m-meta"></p><p id="m-desc" style="margin:0 0 20px"></p>
+  <button class="btn-play" id="m-play" type="button">PLAY</button><button class="btn-ghost" id="m-close" type="button">Close</button></div>
+</dialog>
+
+<dialog class="dlg" id="auth" aria-label="Log in or sign up">
+  <div class="tabs"><button type="button" id="t-in" class="on">Log in</button><button type="button" id="t-up">Sign up</button></div>
+  <div class="pad-b"><form id="auth-form" autocomplete="on">
+    <label class="field">Display name<input class="in" id="a-name" required minlength="3" maxlength="20" autocomplete="username"><small>3–20 letters, numbers or underscores</small></label>
+    <label class="field">Password<input class="in" id="a-pass" type="password" required minlength="6" autocomplete="current-password"></label>
+    <label class="field" id="a-mail-w" hidden>Email (optional)<input class="in" id="a-mail" type="email" autocomplete="email"><small>Only used to help recover your account</small></label>
+    <div class="err" id="a-err" role="alert"></div>
+    <button class="btn-play" id="a-go" type="submit" style="height:48px;font-size:17px">Log in</button>
+    <button class="btn-ghost" id="a-x" type="button">Cancel</button>
+  </form></div>
+</dialog>
+
+<div id="game" role="dialog" aria-label="Game">
+  <canvas id="canvas"></canvas>
+  <div class="hud"><span class="hud-title" id="g-title"></span><button id="g-mode" type="button">Mode: Place</button><button id="g-exit" type="button">Exit</button></div>
+  <div id="g-stat"></div>
+  <div class="swatches" id="swatches"></div>
+  <div class="pad"><span></span><button data-d="0,-1">▲</button><span></span><button data-d="-1,0">◀</button><span></span><button data-d="1,0">▶</button><span></span><button data-d="0,1">▼</button><span></span></div>
+  <button class="jump" id="jump" type="button">JUMP</button>
+</div>
+
+<script>
+/* ===== helpers + storage (per-device; see notes on real accounts) ===== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS = {get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
+            set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }};
+const GRADS = ['linear-gradient(135deg,#6aa8ff,#2f6bff)','linear-gradient(135deg,#ffb56a,#ff6a5c)','linear-gradient(135deg,#7be0a8,#1fa37a)','linear-gradient(135deg,#c79bff,#6a4cff)','linear-gradient(135deg,#ffe27a,#ffa63d)','linear-gradient(135deg,#7adfe8,#2b8fb5)'];
+const GENRES = {builder:'Builder', shooter:'Shooter', obby:'Obby'};
+const mk = (id, title, genre, diff, c, desc) => ({id, title, genre, diff, c, desc, author:'RoBlocks'});
+const BASE = [
+  mk('arena-strike','Arena Strike','shooter',2,1,'Survive waves of enemies. Tap or click to fire.'),
+  mk('sky-island','Sky Island Tycoon','builder',2,0,'A sandbox to build floating islands.'),
+  mk('lava-escape','Lava Escape','obby',2,4,'Jump across platforms to reach the gold finish.'),
+  mk('zombie-yard','Zombie Yard','shooter',3,2,'Hard mode. Lots of enemies, little room.'),
+  mk('castle-builders','Castle Builders','builder',1,3,'Stack blocks to design your castle.'),
+  mk('sky-parkour','Sky Parkour','obby',3,5,'Long course with tight gaps.')];
+const userGames = () => LS.get('rb_games', []);
+const allGames = () => [...userGames(), ...BASE];
+const findGame = id => allGames().find(g => g.id === id);
+const getUsers = () => LS.get('rb_users', {});
+const me = () => { const k = LS.get('rb_session', null); const u = k && getUsers()[k]; return u || null; };
+
+/* ===== views ===== */
+const state = {q:'', genre:'all'};
+const card = g => `<a class="card" href="#" data-id="${esc(g.id)}"><div class="thumb" style="background:${GRADS[g.c]}"><span class="tag">${GENRES[g.genre]}</span></div><div class="card-title">${esc(g.title)}</div><div class="card-meta">by ${esc(g.author)}</div></a>`;
+const row = (t, list) => list.length ? `<section class="row"><h2>${t}</h2><div class="rail">${list.map(card).join('')}</div></section>` : '';
+const views = {
+  home() {
+    const u = me(), recent = LS.get('rb_recent', []).map(findGame).filter(Boolean);
+    return `<h1>Home</h1>${row('Continue playing', recent)}${u ? row('Made by you', userGames().filter(g => g.author === u.name)) : ''}${row('Recommended for you', allGames())}`;
+  },
+  discover() {
+    const q = state.q.trim().toLowerCase();
+    const list = allGames().filter(g => (state.genre === 'all' || g.genre === state.genre) && (!q || (g.title + g.author).toLowerCase().includes(q)));
+    const chips = ['all', ...Object.keys(GENRES)].map(k => `<button class="chip${state.genre === k ? ' on' : ''}" data-genre="${k}">${k === 'all' ? 'All' : GENRES[k]}</button>`).join('');
+    return `<h1>Discover</h1><div class="chips">${chips}</div>${list.length ? `<div class="grid">${list.map(card).join('')}</div>` : '<p class="empty">No games match. Try another search or genre.</p>'}`;
+  },
+  create() {
+    const opts = [['builder','Builder','Players place and remove blocks in a sandbox.'],['shooter','Shooter','Players fight waves of enemies by tapping or clicking to fire.'],['obby','Obby','Players jump across platforms to reach the finish.']]
+      .map(([k, n, d], i) => `<label class="opt"><input type="radio" name="genre" value="${k}"${i ? '' : ' checked'}><div><b>${n}</b><span>${d}</span></div></label>`).join('');
+    const cols = GRADS.map((g, i) => `<label style="background:${g}"><input type="radio" name="c" value="${i}"${i ? '' : ' checked'} aria-label="Cover ${i + 1}"></label>`).join('');
+    return `<h1>Create</h1><form class="form" id="create-form">
+      <label class="field">Game title<input class="in" name="title" required maxlength="40" placeholder="My awesome game"></label>
+      <label class="field">Description<textarea class="in" name="desc" maxlength="140" placeholder="What do players do?"></textarea></label>
+      <div class="field">Game type<div class="opts">${opts}</div></div>
+      <label class="field">Difficulty<select class="in" name="diff"><option value="1">Easy</option><option value="2" selected>Medium</option><option value="3">Hard</option></select></label>
+      <div class="field">Cover color<div class="cols">${cols}</div></div>
+      <div class="err" id="c-err"></div><button class="btn" style="height:46px;font-size:16px" type="submit">Publish game</button>
+      <small style="color:var(--muted)">You need to be logged in to publish. Your game appears in Home and Discover.</small></form>`;
+  }
+};
+function render() {
+  const r = (location.hash.split('/')[1] || 'home'), name = views[r] ? r : 'home';
+  $('view').innerHTML = views[name]();
+  document.querySelectorAll('.nav a').forEach(a => a.dataset.r === name ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+  scrollTo(0, 0);
+}
+addEventListener('hashchange', render);
+$('q').addEventListener('input', e => { state.q = e.target.value; location.hash === '#/discover' ? render() : (location.hash = '#/discover'); });
+
+/* ===== auth (demo: stored on this device only) ===== */
+const sha = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
+let signup = false, pending = null;
+function setTab(up) {
+  signup = up; $('t-in').classList.toggle('on', !up); $('t-up').classList.toggle('on', up);
+  $('a-mail-w').hidden = !up; $('a-go').textContent = up ? 'Create account' : 'Log in';
+  $('a-pass').autocomplete = up ? 'new-password' : 'current-password'; $('a-err').textContent = '';
+}
+$('t-in').onclick = () => setTab(false); $('t-up').onclick = () => setTab(true);
+$('a-x').onclick = () => { pending = null; $('auth').close(); };
+function requireAuth(then) { if (me()) return then(); pending = then; setTab(false); $('auth').showModal(); }
+$('auth-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('a-name').value.trim(), pass = $('a-pass').value, mail = $('a-mail').value.trim(), key = name.toLowerCase(), users = getUsers();
+  const fail = m => $('a-err').textContent = m;
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(name)) return fail('Display name must be 3–20 letters, numbers or underscores.');
+  if (pass.length < 6) return fail('Password must be at least 6 characters.');
+  if (signup) {
+    if (users[key]) return fail('That display name is taken.');
+    const salt = [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2, '0')).join('');
+    users[key] = {name, salt, hash: await sha(salt + pass), email: mail || null};
+    LS.set('rb_users', users);
+  } else if (!users[key] || users[key].hash !== await sha(users[key].salt + pass)) return fail('Display name or password is incorrect.');
+  LS.set('rb_session', key); $('a-pass').value = ''; $('auth').close(); userbar(); render();
+  const go = pending; pending = null; if (go) go();
+});
+function userbar() {
+  const u = me();
+  $('userbar').innerHTML = u ? `<span id="uname">${esc(u.name)}</span><button class="btn-2" id="logout">Log out</button>` : `<button class="btn" id="login">Log in</button>`;
+}
+$('userbar').addEventListener('click', e => {
+  if (e.target.id === 'logout') { LS.set('rb_session', null); userbar(); render(); }
+  if (e.target.id === 'login') requireAuth(() => {});
+});
+
+/* ===== cards, chips, modal, create ===== */
+let current = null;
+function openGame(g) {
+  current = g; $('m-title').textContent = g.title; $('m-meta').textContent = `${GENRES[g.genre]} · by ${g.author}`;
+  $('m-desc').textContent = g.desc || 'No description yet.'; $('m-thumb').style.background = GRADS[g.c]; $('modal').showModal();
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('.card'); if (c) { e.preventDefault(); return openGame(findGame(c.dataset.id)); }
+  const ch = e.target.closest('.chip'); if (ch) { state.genre = ch.dataset.genre; render(); }
+});
+$('m-close').onclick = () => $('modal').close();
+$('modal').addEventListener('click', e => { if (e.target === $('modal')) $('modal').close(); });
+$('m-play').onclick = () => {
+  const g = current; $('modal').close();
+  requireAuth(() => { LS.set('rb_recent', [g.id, ...LS.get('rb_recent', []).filter(i => i !== g.id)].slice(0, 8)); Game.start(g); });
+};
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'create-form') return; e.preventDefault();
+  const f = new FormData(e.target), title = f.get('title').trim(), genre = f.get('genre');
+  if (!title) return $('c-err').textContent = 'Give your game a title.';
+  requireAuth(() => {
+    const g = {id: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24) + '-' + Date.now().toString(36), title, genre: GENRES[genre] ? genre : 'builder',
+      diff: Math.min(3, Math.max(1, +f.get('diff') || 2)), c: Math.min(5, Math.max(0, +f.get('c') || 0)), desc: f.get('desc').trim().slice(0, 140), author: me().name};
+    LS.set('rb_games', [g, ...userGames()]); location.hash = '#/home'; render(); openGame(g);
+  });
+});
+
+/* ===== 3D game: one scaffold, a mode per genre ===== */
+const Game = (() => {
+  const HALF = 19.5, keys = {}, pad = {x:0, z:0};
+  let renderer, scene, camera, player, ground, mode, raf, ready = false, jumpReq = false;
+  const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), clock = new THREE.Clock();
+  const mat = c => new THREE.MeshLambertMaterial({color:c});
+  const box = (w, h, d, c) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c));
+  const pick = (e, objs) => { ptr.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1); ray.setFromCamera(ptr, camera); return ray.intersectObjects(objs)[0]; };
+  function walk(dt, speed, lim = HALF) {
+    let x = pad.x + (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
+    let z = pad.z + (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
+    const l = Math.hypot(x, z); if (!l) return;
+    x /= l; z /= l; const p = player.position;
+    p.x = THREE.MathUtils.clamp(p.x + x * speed * dt, -lim, lim); p.z = THREE.MathUtils.clamp(p.z + z * speed * dt, -lim, lim);
+    player.rotation.y = Math.atan2(x, z);
+  }
+  const stat = t => $('g-stat').textContent = t;
+
+  const modes = {
+    builder() {
+      const blocks = []; let color = 0x3498db, del = false;
+      const cs = [0xe74c3c, 0xf1c40f, 0x2ecc71, 0x3498db, 0x9b59b6, 0xecf0f1];
+      $('swatches').innerHTML = cs.map(c => `<button class="sw${c === color ? ' on' : ''}" data-c="${c}" style="background:#${c.toString(16).padStart(6, '0')}" aria-label="Color"></button>`).join('');
+      $('g-mode').textContent = 'Mode: Place'; $('g-mode').classList.remove('on');
+      mode_ui.swatch = e => { const s = e.target.closest('.sw'); if (!s) return; color = +s.dataset.c; document.querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x === s)); };
+      mode_ui.toggle = () => { del = !del; $('g-mode').textContent = 'Mode: ' + (del ? 'Remove' : 'Place'); $('g-mode').classList.toggle('on', del); };
+      stat('Tap the ground to build');
+      return {
+        update: dt => walk(dt, 6),
+        tap(e) {
+          const h = pick(e, [ground, ...blocks]); if (!h) return;
+          if (del) { if (h.object !== ground) { scene.remove(h.object); blocks.splice(blocks.indexOf(h.object), 1); } return; }
+          const p = new THREE.Vector3();
+          if (h.object === ground) p.set(Math.floor(h.point.x) + .5, .5, Math.floor(h.point.z) + .5); else p.copy(h.object.position).add(h.face.normal);
+          if (blocks.some(b => b.position.equals(p))) return;
+          if (Math.abs(p.x - player.position.x) < 1 && Math.abs(p.z - player.position.z) < 1 && p.y < 1.5) return;
+          const b = box(1, 1, 1, color); b.position.copy(p); scene.add(b); blocks.push(b);
+        }};
+    },
+    shooter(g) {
+      const d = g.diff, en = [], bl = []; let hp = 100, score = 0, cool = 0, over = false;
+      const spawn = () => { const m = box(.9, 1.2, .9, 0xd63031), a = Math.random() * 6.283; m.position.set(Math.cos(a) * 18, .6, Math.sin(a) * 18); scene.add(m); en.push(m); };
+      const fill = () => { while (en.length < 3 + d * 3) spawn(); };
+      const hud = () => stat(over ? `Game over · score ${score} · tap to retry` : `HP ${Math.ceil(hp)} · Score ${score}`);
+      fill(); hud();
+      return {
+        tap(e) {
+          if (over) { en.forEach(m => scene.remove(m)); en.length = 0; hp = 100; score = 0; over = false; player.position.set(0, .6, 0); fill(); return hud(); }
+          if (cool > 0) return; const h = pick(e, [ground]); if (!h) return;
+          const dir = h.point.clone().sub(player.position).setY(0).normalize();
+          const b = new THREE.Mesh(new THREE.SphereGeometry(.18, 8, 8), mat(0xffe66d));
+          b.position.copy(player.position).setY(.7); b.userData = {v: dir.multiplyScalar(24), t: 1.2}; scene.add(b); bl.push(b); cool = .18;
+        },
+        update(dt) {
+          if (over) return; cool -= dt; walk(dt, 6);
+          for (let i = bl.length - 1; i >= 0; i--) {
+            const b = bl[i]; b.position.addScaledVector(b.userData.v, dt); b.userData.t -= dt; let dead = b.userData.t <= 0;
+            for (let j = en.length - 1; j >= 0; j--) if (b.position.distanceTo(en[j].position) < .8) { scene.remove(en[j]); en.splice(j, 1); score++; dead = true; spawn(); break; }
+            if (dead) { scene.remove(b); bl.splice(i, 1); }
+          }
+          for (const m of en) {
+            const v = player.position.clone().sub(m.position).setY(0), l = v.length();
+            m.position.addScaledVector(v.normalize(), (1.4 + d * .7) * dt); if (l < 1) hp -= 25 * dt;
+          }
+          if (hp <= 0) over = true; hud();
+        }};
+    },
+    obby(g) {
+      let s = 0; for (const ch of g.id) s = (s * 31 + ch.charCodeAt(0)) >>> 0;
+      const rnd = () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+      const n = 8 + g.diff * 4, plats = []; let x = 0, y = 0, z = 0, prev = 3;
+      for (let i = 0; i < n; i++) {
+        const w = i ? Math.max(1.6, 3.4 - g.diff * .5) : 6;
+        if (i) { z -= prev + w / 2 + .8 + g.diff * .5 + rnd() * .6; x = THREE.MathUtils.clamp(x + (rnd() - .5) * 4, -8, 8); y += rnd() * .5; }
+        const p = box(w, 1, w, i === n - 1 ? 0xf1c40f : [0x6c5ce7, 0x00b894, 0x0984e3][i % 3]); p.position.set(x, y - .5, z); scene.add(p);
+        plats.push({x, z, hw: w / 2, top: y}); prev = w / 2;
+      }
+      let vy = 0, t = 0, won = false; const goal = plats[n - 1];
+      return {
+        tap() {},
+        update(dt) {
+          walk(dt, 6, 60); const p = player.position; vy -= 22 * dt; p.y += vy * dt; let on = false;
+          for (const q of plats) if (Math.abs(p.x - q.x) < q.hw + .4 && Math.abs(p.z - q.z) < q.hw + .4) {
+            const feet = p.y - .6; if (vy <= 0 && feet <= q.top + .05 && feet >= q.top - .6) { p.y = q.top + .6; vy = 0; on = true; }
+          }
+          if ((keys.Space || jumpReq) && on) vy = 9; jumpReq = false;
+          if (p.y < -12) { p.set(0, .6, 0); vy = 0; }
+          if (!won) { t += dt; if (on && Math.hypot(p.x - goal.x, p.z - goal.z) < goal.hw) won = true; }
+          stat(won ? `You win! ${t.toFixed(1)}s` : `Time ${t.toFixed(1)}s`);
+        }};
+    }
+  };
+  const mode_ui = {swatch() {}, toggle() {}};
+
+  function init() {
+    renderer = new THREE.WebGLRenderer({canvas: $('canvas'), antialias: true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    camera = new THREE.PerspectiveCamera(55, 1, .1, 200);
+    addEventListener('keydown', e => keys[e.code] = true); addEventListener('keyup', e => keys[e.code] = false);
+    document.querySelectorAll('.pad button').forEach(b => {
+      const [x, z] = b.dataset.d.split(',').map(Number);
+      b.addEventListener('pointerdown', e => { e.preventDefault(); pad.x = x; pad.z = z; });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => b.addEventListener(t, () => pad.x = pad.z = 0));
+    });
+    $('canvas').addEventListener('pointerdown', e => mode && mode.tap(e));
+    $('jump').addEventListener('pointerdown', e => { e.preventDefault(); jumpReq = true; });
+    $('swatches').onclick = e => mode_ui.swatch(e); $('g-mode').onclick = () => mode_ui.toggle();
+    $('g-exit').onclick = stop; addEventListener('resize', resize); ready = true;
+  }
+  function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+  function loop() {
+    raf = requestAnimationFrame(loop); const dt = Math.min(clock.getDelta(), .05);
+    mode.update(dt); const t = player.position;
+    camera.position.lerp(new THREE.Vector3(t.x, t.y + 9, t.z + 9), .1); camera.lookAt(t.x, t.y, t.z); renderer.render(scene, camera);
+  }
+  function start(g) {
+    if (!ready) init(); cancelAnimationFrame(raf);
+    scene = new THREE.Scene(); scene.background = new THREE.Color(0x9ad7ff);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x667788, .9)); const sun = new THREE.DirectionalLight(0xffffff, .6); sun.position.set(10, 20, 8); scene.add(sun);
+    player = box(.8, 1.2, .8, 0xff7a1a); player.position.set(0, .6, 0); scene.add(player);
+    if (g.genre !== 'obby') {
+      ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), mat(0x7ec850)); ground.rotation.x = -Math.PI / 2; scene.add(ground);
+      const gr = new THREE.GridHelper(40, 40, 0x2f6b2f, 0x2f6b2f); gr.position.y = .01; scene.add(gr);
+    }
+    mode = modes[g.genre](g); $('game').dataset.g = g.genre; $('g-title').textContent = g.title;
+    camera.position.set(0, 9, 9); $('game').classList.add('open'); document.body.classList.add('playing'); resize(); clock.start(); loop();
+  }
+  function stop() { cancelAnimationFrame(raf); $('game').classList.remove('open'); document.body.classList.remove('playing'); pad.x = pad.z = 0; }
+  return {start, stop};
+})();
+
+userbar(); render();
+</script>
+</body>
+</html>
