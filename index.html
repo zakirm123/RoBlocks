@@ -108,6 +108,17 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
 .post h2{margin:6px 0 8px}.post p{margin:0 0 10px;max-width:62ch}.post time{color:var(--muted);font-size:12px}
 .tag2{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:10px;background:var(--hover);font-size:11px;font-weight:600}
 .banner{display:block;margin-bottom:24px;padding:12px 16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);color:var(--text);text-decoration:none}
+.friend-form{display:flex;gap:8px;max-width:480px;margin-bottom:8px}
+.friend-form .in{flex:1}.friend-form .btn{height:42px}
+.friend-list{list-style:none;margin:8px 0 16px;padding:0;display:grid;gap:8px;max-width:480px}
+.friend{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.f-name{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.f-status{color:var(--muted);font-size:12px}
+.dot{width:10px;height:10px;border-radius:50%;background:#9aa0a6;flex:none}.dot.on{background:#1fa84f}
+.friend .btn,.friend .btn-2{height:30px;padding:0 12px;font-size:13px}
+.sub{margin:16px 0 8px;font-size:14px;color:var(--muted);font-weight:600}
+.badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--danger);color:#fff;font-size:12px;line-height:20px;text-align:center;vertical-align:middle}
+.err.ok{color:var(--play)}
 </style>
 </head>
 <body>
@@ -217,6 +228,7 @@ const figure = o => {
 };
 /* ===== NEWS: add a new post at the TOP of this list whenever you update ===== */
 const POSTS = [
+  {date:'2026-10-06', tag:'Update', title:'Friends and friend requests', body:['Add friends by display name from the Friends section on Home. They get a request they can accept or decline, and you can remove a friend at any time.','Friends show a green dot when online and a gray dot when offline.']},
   {date:'2026-10-06', tag:'Update', title:'Starter avatars, hair and the News page', body:['New accounts now start with a default look. Choose a Male or Female look when you sign up, and switch it any time on the Avatar page.','There is a new Hair section with free and paid styles, and the official RoBlocks account now shows an Owner crown.']},
   {date:'2026-10-06', tag:'Update', title:'Ro-Bucks and the Avatar shop', body:['Dress your character with free and paid clothing. New accounts get 100 Ro-Bucks to start. Creators can now set a price for their games.']},
   {date:'2026-10-06', tag:'Update', title:'Shooter and Obby games, accounts and Create', body:['Games now come in three types: Builder, Shooter and Obby. Log in or sign up to play, and publish your own game from the Create page.']},
@@ -230,7 +242,7 @@ const row = (t, list) => list.length ? `<section class="row"><h2>${t}</h2><div c
 const views = {
   home() {
     const u = me(), recent = LS.get('rb_recent', []).map(findGame).filter(Boolean);
-    return `<h1>Home</h1><a class="banner" href="#/news"><b>Latest:</b> ${esc(POSTS[0].title)}</a>${row('Continue playing', recent)}${u ? row('Made by you', userGames().filter(g => g.author === u.name)) : ''}${row('Recommended for you', allGames())}`;
+    return `<h1>Home</h1><a class="banner" href="#/news"><b>Latest:</b> ${esc(POSTS[0].title)}</a>${friendsPanel()}${row('Continue playing', recent)}${u ? row('Made by you', userGames().filter(g => g.author === u.name)) : ''}${row('Recommended for you', allGames())}`;
   },
   discover() {
     const q = state.q.trim().toLowerCase();
@@ -506,6 +518,97 @@ function itemAction(id) {
 }
 
 function setBody(b) { requireAuth(() => { const u = me(); u.body = b; u.avatar = {}; saveUser(u); render(); }); }
+
+/* ===== FRIENDS + FRIEND REQUESTS ===== */
+const FRIEND_RE = /^[A-Za-z0-9_]{3,20}$/;
+const PRESENCE_MS = 90000, MAX_FRIENDS = 100, MAX_REQUESTS = 50;   // "online" = active in the last 90 seconds
+const lc = s => s.toLowerCase();
+const isOnline = name => { const u = getUsers()[lc(name)]; return !!u && Date.now() - (u.lastSeen || 0) < PRESENCE_MS; };
+const makeFriends = (a, b) => {
+  for (const [x, y] of [[a, b], [b, a]]) { x.friends ??= []; if (!x.friends.some(f => f.name === y.name)) x.friends.push({name: y.name, online: isOnline(y.name)}); }
+};
+
+function syncFriendStatus() {
+  const u = me(); if (!u || !u.friends) return;
+  u.friends = u.friends.map(f => ({...f, online: isOnline(f.name)}));
+  saveUser(u);
+}
+
+function sendRequest(raw) {                      // returns {err} or {ok}
+  const name = raw.trim(), key = lc(name), all = getUsers(), mine = all[lc(me().name)], them = all[key];
+  if (!FRIEND_RE.test(name)) return {err: 'Names are 3–20 letters, numbers or underscores.'};
+  if (key === lc(mine.name)) return {err: "You can't add yourself."};
+  if (!them) return {err: `No player named "${name}" was found.`};
+  for (const u of [mine, them]) { u.friends ??= []; u.requests ??= []; }
+  if (mine.friends.some(f => lc(f.name) === key)) return {err: `You and ${them.name} are already friends.`};
+  if (them.requests.some(r => lc(r.from) === lc(mine.name))) return {err: `You already sent ${them.name} a request.`};
+  if (mine.friends.length >= MAX_FRIENDS) return {err: `Your friends list is full (${MAX_FRIENDS}).`};
+  if (them.requests.length >= MAX_REQUESTS) return {err: `${them.name} has too many pending requests.`};
+  const theirs = mine.requests.find(r => lc(r.from) === key);   // they already asked you, so just accept
+  if (theirs) { mine.requests = mine.requests.filter(r => r !== theirs); makeFriends(mine, them); LS.set('rb_users', all); return {ok: `You and ${them.name} are now friends.`}; }
+  them.requests.push({from: mine.name, at: Date.now()});
+  LS.set('rb_users', all);
+  return {ok: `Friend request sent to ${them.name}.`};
+}
+
+function respondRequest(from, accept) {
+  const all = getUsers(), mine = all[lc(me().name)];
+  mine.friends ??= []; mine.requests = (mine.requests || []).filter(r => r.from !== from);
+  const them = all[lc(from)];
+  if (accept && them) makeFriends(mine, them);
+  LS.set('rb_users', all);
+}
+
+function removeFriend(name) {                    // removes you from each other's lists
+  const all = getUsers(), mine = all[lc(me().name)], them = all[lc(name)];
+  mine.friends = (mine.friends || []).filter(f => f.name !== name);
+  if (them) them.friends = (them.friends || []).filter(f => f.name !== mine.name);
+  LS.set('rb_users', all);
+}
+
+function friendsPanel() {
+  if (!me()) return `<section class="row" id="friends"><h2>Friends</h2><p class="muted">Log in to add friends.</p><button class="btn" id="friends-login" type="button">Log in</button></section>`;
+  syncFriendStatus();
+  const u = me(), rq = u.requests || [];
+  const reqs = rq.map(r => `<li class="friend"><span class="f-name">${who(r.from)}</span><span class="f-status">wants to be friends</span><button class="btn req-accept" type="button" data-name="${esc(r.from)}">Accept</button><button class="btn-2 req-decline" type="button" data-name="${esc(r.from)}">Decline</button></li>`).join('');
+  const list = [...(u.friends || [])].sort((a, b) => b.online - a.online || a.name.localeCompare(b.name))
+    .map(f => `<li class="friend"><span class="dot${f.online ? ' on' : ''}" aria-hidden="true"></span><span class="f-name">${who(f.name)}</span><span class="f-status">${f.online ? 'Online' : 'Offline'}</span><button class="btn-2 friend-remove" type="button" data-name="${esc(f.name)}" aria-label="Remove ${esc(f.name)}">Remove</button></li>`).join('');
+  return `<section class="row" id="friends"><h2>Friends${rq.length ? ` <span class="badge" title="Pending requests">${rq.length}</span>` : ''}</h2>
+    ${reqs ? `<h3 class="sub">Friend requests</h3><ul class="friend-list">${reqs}</ul>` : ''}
+    <form class="friend-form" id="friend-form"><input class="in" id="f-name" minlength="3" maxlength="20" placeholder="Friend's display name" aria-label="Friend's display name" autocomplete="off"><button class="btn" type="submit">Add Friend</button></form>
+    <div class="err" id="f-err" role="alert"></div>
+    ${list ? `<h3 class="sub">Your friends</h3><ul class="friend-list">${list}</ul>` : '<p class="muted">No friends yet. Add someone by their display name.</p>'}</section>`;
+}
+
+function showMsg(text, ok) { const el = $('f-err'); if (!el) return; el.textContent = text; el.classList.toggle('ok', !!ok); }
+function refreshFriends(focusInput = false) {
+  if (!$('friends')) return;
+  $('friends').outerHTML = friendsPanel();
+  if (focusInput && $('f-name')) $('f-name').focus();
+}
+function refreshIdle() {                         // refresh without wiping what the player is typing
+  const input = $('f-name');
+  if ($('friends') && (!input || (document.activeElement !== input && !input.value))) refreshFriends();
+}
+
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'friend-form') return;
+  e.preventDefault();
+  const res = sendRequest($('f-name').value);
+  if (res.err) return showMsg(res.err, false);
+  refreshFriends(true); showMsg(res.ok, true);
+});
+document.addEventListener('click', e => {
+  const rm = e.target.closest('.friend-remove'), ac = e.target.closest('.req-accept'), de = e.target.closest('.req-decline');
+  if (rm) { removeFriend(rm.dataset.name); refreshFriends(); }
+  if (ac || de) { respondRequest((ac || de).dataset.name, !!ac); refreshFriends(); }
+  if (e.target.id === 'friends-login') requireAuth(() => {});
+});
+
+/* presence heartbeat: marks you active and refreshes statuses */
+function beat() { const u = me(); if (u) { u.lastSeen = Date.now(); saveUser(u); } refreshIdle(); }
+beat(); setInterval(beat, 30000);
+addEventListener('storage', e => { if (e.key === 'rb_users') refreshIdle(); });
 
 userbar(); render();
 </script>
