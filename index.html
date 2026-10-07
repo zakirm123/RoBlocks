@@ -119,6 +119,7 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
 .sub{margin:16px 0 8px;font-size:14px;color:var(--muted);font-weight:600}
 .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--danger);color:#fff;font-size:12px;line-height:20px;text-align:center;vertical-align:middle}
 .err.ok{color:var(--play)}
+.av3d{width:100%;max-width:200px;aspect-ratio:3/4;touch-action:none;cursor:grab}
 </style>
 </head>
 <body>
@@ -177,7 +178,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 const LS = {get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
             set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }};
 const GRADS = ['linear-gradient(135deg,#6aa8ff,#2f6bff)','linear-gradient(135deg,#ffb56a,#ff6a5c)','linear-gradient(135deg,#7be0a8,#1fa37a)','linear-gradient(135deg,#c79bff,#6a4cff)','linear-gradient(135deg,#ffe27a,#ffa63d)','linear-gradient(135deg,#7adfe8,#2b8fb5)'];
-const GENRES = {builder:'Builder', shooter:'Shooter', obby:'Obby'};
+const GENRES = {builder:'Builder', shooter:'Shooter', obby:'Obby', horror:'Horror', survival:'Survival', adventure:'Adventure'};
 const mk = (id, title, genre, diff, c, desc, price = 0) => ({id, title, genre, diff, c, desc, price, author:'RoBlocks'});
 const BASE = [
   mk('arena-strike','Arena Strike','shooter',2,1,'Survive waves of enemies. Tap or click to fire.'),
@@ -185,7 +186,10 @@ const BASE = [
   mk('lava-escape','Lava Escape','obby',2,4,'Jump across platforms to reach the gold finish.'),
   mk('zombie-yard','Zombie Yard','shooter',3,2,'Hard mode. Lots of enemies, little room.',50),
   mk('castle-builders','Castle Builders','builder',1,3,'Stack blocks to design your castle.'),
-  mk('sky-parkour','Sky Parkour','obby',3,5,'Long course with tight gaps.',25)];
+  mk('sky-parkour','Sky Parkour','obby',3,5,'Long course with tight gaps.',25),
+  mk('haunted-manor','Haunted Manor','horror',2,3,'Find 3 keys in the dark and reach the door. Do not get caught.'),
+  mk('wild-island','Wild Island','survival',2,2,'Eat, outrun the wolves and survive 90 seconds.'),
+  mk('crystal-quest','Crystal Quest','adventure',2,5,'Collect 5 gems, then enter the glowing portal.')];
 const userGames = () => LS.get('rb_games', []);
 const allGames = () => [...userGames(), ...BASE];
 const findGame = id => allGames().find(g => g.id === id);
@@ -228,6 +232,7 @@ const figure = o => {
 };
 /* ===== NEWS: add a new post at the TOP of this list whenever you update ===== */
 const POSTS = [
+  {date:'2026-10-06', tag:'Update', title:'Horror, Survival and Adventure + 3D avatars', body:['Three new game types: Horror (dark map, flashlight, 3 keys and a ghost), Survival (hunger, wolves, 90 seconds) and Adventure (collect 5 gems and enter the portal). All can be chosen on the Create page.','Games now have trees, rocks, shadows and animated characters. Pinch to zoom (or use the mouse wheel) to switch between 3rd and 1st person, and drag to look around.','Avatars are now real 3D models with arms, legs and a face. Drag the avatar on the Avatar page to spin it.','Friend requests to a name with no account in this browser are now saved and delivered when that player signs up, instead of saying they do not exist.']},
   {date:'2026-10-06', tag:'Update', title:'Friends and friend requests', body:['Add friends by display name from the Friends section on Home. They get a request they can accept or decline, and you can remove a friend at any time.','Friends show a green dot when online and a gray dot when offline.']},
   {date:'2026-10-06', tag:'Update', title:'Starter avatars, hair and the News page', body:['New accounts now start with a default look. Choose a Male or Female look when you sign up, and switch it any time on the Avatar page.','There is a new Hair section with free and paid styles, and the official RoBlocks account now shows an Owner crown.']},
   {date:'2026-10-06', tag:'Update', title:'Ro-Bucks and the Avatar shop', body:['Dress your character with free and paid clothing. New accounts get 100 Ro-Bucks to start. Creators can now set a price for their games.']},
@@ -259,13 +264,13 @@ const views = {
       const bg = i.under ? `linear-gradient(90deg,${i.color} 30%,${i.under} 30% 70%,${i.color} 70%)` : (i.color || 'var(--hover)');
       return `<div class="item"><div class="prev" style="background:${bg}">${i.color ? '' : 'None'}</div><div class="card-title">${esc(i.name)}</div><div class="card-meta">${i.price ? 'R$ ' + i.price : 'Free'}</div><button class="${own ? 'btn-2' : 'btn'} item-btn" data-item="${i.id}"${eq ? ' disabled' : ''}>${eq ? 'Equipped' : own ? 'Equip' : 'Buy · R$ ' + i.price}</button></div>`;
     }).join('');
-    return `<h1>Avatar</h1><div class="shop"><div class="stage">${figure(o)}<p class="muted">${u ? who(u.name) : 'Log in to equip and buy items'}</p><div class="chips" style="justify-content:center;margin:0">${looks}</div></div><div><div class="chips">${chips}</div><div class="items">${cards}</div></div></div>`;
+    return `<h1>Avatar</h1><div class="shop"><div class="stage"><canvas id="av-canvas" class="av3d" aria-label="Your 3D avatar. Drag to rotate."></canvas><p class="muted">${u ? who(u.name) : 'Log in to equip and buy items'}</p><div class="chips" style="justify-content:center;margin:0">${looks}</div></div><div><div class="chips">${chips}</div><div class="items">${cards}</div></div></div>`;
   },
   news() {
     return `<h1>News</h1>${POSTS.map(p => `<article class="post"><span class="tag2">${esc(p.tag)}</span><time datetime="${p.date}">${new Date(p.date + 'T00:00').toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'})}</time><h2>${esc(p.title)}</h2>${p.body.map(t => `<p>${esc(t)}</p>`).join('')}</article>`).join('')}`;
   },
   create() {
-    const opts = [['builder','Builder','Players place and remove blocks in a sandbox.'],['shooter','Shooter','Players fight waves of enemies by tapping or clicking to fire.'],['obby','Obby','Players jump across platforms to reach the finish.']]
+    const opts = [['builder','Builder','Players place and remove blocks in a sandbox.'],['shooter','Shooter','Players fight waves of enemies by tapping or clicking to fire.'],['obby','Obby','Players jump across platforms to reach the finish.'],['horror','Horror','Dark map, flashlight, keys to find and a ghost hunting you.'],['survival','Survival','Keep your hunger up, avoid wolves and last 90 seconds.'],['adventure','Adventure','Explore an open world, collect gems and reach the portal.']]
       .map(([k, n, d], i) => `<label class="opt"><input type="radio" name="genre" value="${k}"${i ? '' : ' checked'}><div><b>${n}</b><span>${d}</span></div></label>`).join('');
     const cols = GRADS.map((g, i) => `<label style="background:${g}"><input type="radio" name="c" value="${i}"${i ? '' : ' checked'} aria-label="Cover ${i + 1}"></label>`).join('');
     return `<h1>Create</h1><form class="form" id="create-form">
@@ -284,6 +289,7 @@ function render() {
   $('view').innerHTML = views[name]();
   document.querySelectorAll('.nav a').forEach(a => a.dataset.r === name ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   scrollTo(0, 0);
+  if (name === 'avatar') AvatarView.mount();
 }
 addEventListener('hashchange', render);
 $('q').addEventListener('input', e => { state.q = e.target.value; location.hash === '#/discover' ? render() : (location.hash = '#/discover'); });
@@ -361,28 +367,45 @@ const Game = (() => {
   let renderer, scene, camera, player, ground, mode, raf, ready = false, jumpReq = false;
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), clock = new THREE.Clock();
   const mat = c => new THREE.MeshLambertMaterial({color:c});
-  const box = (w, h, d, c) => new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c));
+  const box = (w, h, d, c) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.castShadow = m.receiveShadow = true; return m; };
   const pick = (e, objs) => { ptr.set(e.clientX / innerWidth * 2 - 1, -e.clientY / innerHeight * 2 + 1); ray.setFromCamera(ptr, camera); return ray.intersectObjects(objs)[0]; };
+  const cam = {yaw: 0, dist: 9};                 // dist < 1.5 = first person
   function walk(dt, speed, lim = HALF) {
-    let x = pad.x + (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
-    let z = pad.z + (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
-    const l = Math.hypot(x, z); if (!l) return;
-    x /= l; z /= l; const p = player.position;
+    const ix = pad.x + (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
+    const iz = pad.z + (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
+    const l = Math.hypot(ix, iz); player.userData.moving = l > 0; if (!l) return;
+    const sn = Math.sin(cam.yaw), cs = Math.cos(cam.yaw), x = (ix * cs + iz * sn) / l, z = (-ix * sn + iz * cs) / l, p = player.position;
     p.x = THREE.MathUtils.clamp(p.x + x * speed * dt, -lim, lim); p.z = THREE.MathUtils.clamp(p.z + z * speed * dt, -lim, lim);
     player.rotation.y = Math.atan2(x, z);
   }
   const stat = t => $('g-stat').textContent = t;
-  function makePlayer() {
+  function makePlayer() {                        // real 3D character: legs, arms, torso, head, face, hair, hat
     const o = outfit(), I = s => item(o[s]), c = x => parseInt(x.slice(1), 16), grp = new THREE.Group();
-    const part = (w, h, d, y, col, z = 0) => { const m = box(w, h, d, col); m.position.set(0, y, z); grp.add(m); };
-    const pa = I('pants'), sh = I('shirt'), hr = I('hair'), h = I('hat');
-    part(.7, .4, .4, -.4, c(pa.color)); part(.74, .1, .46, -.55, c(pa.shoe || '#222222'));
-    part(.8, .45, .45, .025, c(sh.color)); if (sh.under) part(.28, .45, .02, .025, c(sh.under), .235);
-    part(.35, .35, .35, .425, c(I('skin').color));
-    if (hr.color) { part(.4, .1, .4, .63, c(hr.color)); if (hr.style === 'bun') part(.16, .14, .16, .75, c(hr.color)); }
-    if (h.color) { const [w, hh] = HAT[h.style]; part(w, hh, w, (hr.color ? .66 : .58) + hh / 2, c(h.color)); }
+    const pa = I('pants'), sh = I('shirt'), hr = I('hair'), hat = I('hat'), sk = c(I('skin').color);
+    const put = (w, h, d, x, y, z, col, par = grp) => { const m = box(w, h, d, col); m.position.set(x, y, z); par.add(m); };
+    const limb = (x, y, fill) => { const g = new THREE.Group(); g.position.set(x, y, 0); grp.add(g); fill(g); return g; };
+    const legs = [-.15, .15].map(x => limb(x, -.2, g => { put(.28, .4, .32, 0, -.2, 0, c(pa.color), g); put(.3, .1, .4, 0, -.38, .04, c(pa.shoe || '#222222'), g); }));
+    const arms = [-.4, .4].map(x => limb(x, .2, g => { put(.2, .42, .24, 0, -.21, 0, sk, g); put(.22, .26, .26, 0, -.1, 0, c(sh.color), g); }));
+    put(.54, .45, .34, 0, .025, 0, c(sh.color)); if (sh.under) put(.2, .45, .01, 0, .025, .175, c(sh.under));
+    put(.4, .38, .38, 0, .44, 0, sk);
+    put(.06, .06, .02, -.09, .48, .195, 0x222222); put(.06, .06, .02, .09, .48, .195, 0x222222); put(.16, .03, .02, 0, .37, .195, 0x222222);
+    if (hr.color) { const hc = c(hr.color); put(.43, .1, .43, 0, .66, 0, hc); put(.43, .22, .08, 0, .54, -.2, hc); if (hr.style === 'bun') put(.16, .16, .16, 0, .78, -.05, hc); else put(.43, .08, .08, 0, .6, .2, hc); }
+    if (hat.color) { const [w, hh] = HAT[hat.style]; put(w, hh, w, 0, (hr.color ? .71 : .63) + hh / 2, 0, c(hat.color)); }
+    grp.userData.limbs = [...legs, ...arms];
     return grp;
   }
+  function scenery(count, seed, avoid = 6) {     // trees and rocks around the map
+    let n = seed; const r = () => (n = n * 16807 % 2147483647) / 2147483647;
+    for (let i = 0; i < count; i++) {
+      const x = (r() - .5) * 38, z = (r() - .5) * 38, k = r(), q = r(); if (Math.hypot(x, z) < avoid) continue;
+      if (k < .7) {
+        const h = 1 + q * 1.5, t = box(.3, h, .3, 0x6b4a2b); t.position.set(x, h / 2, z);
+        const leaf = new THREE.Mesh(new THREE.ConeGeometry(.9 + q * .5, 2.2, 7), mat(q > .5 ? 0x2e7d32 : 0x388e3c)); leaf.position.set(x, h + .9, z); leaf.castShadow = true; scene.add(t, leaf);
+      } else { const rk = new THREE.Mesh(new THREE.DodecahedronGeometry(.4 + q * .6), mat(0x8d949b)); rk.position.set(x, .35, z); rk.castShadow = rk.receiveShadow = true; scene.add(rk); }
+    }
+  }
+  const rnd2 = () => (Math.random() - .5) * 32, near = (a, b, d) => a.position.distanceTo(b.position) < d, chase = (m, to, sp, dt) => { const v = to.position.clone().sub(m.position).setY(0); m.position.addScaledVector(v.normalize(), sp * dt); m.rotation.y = Math.atan2(v.x, v.z); };
+
 
   const modes = {
     builder() {
@@ -456,13 +479,64 @@ const Game = (() => {
           if (!won) { t += dt; if (on && Math.hypot(p.x - goal.x, p.z - goal.z) < goal.hw) won = true; }
           stat(won ? `You win! ${t.toFixed(1)}s` : `Time ${t.toFixed(1)}s`);
         }};
+    },
+    horror(g) {
+      scene.background = new THREE.Color(0x040406); scene.fog = new THREE.FogExp2(0x040406, .1);
+      scene.children.filter(o => o.isLight).forEach(l => l.intensity *= .2);
+      const fl = new THREE.SpotLight(0xfff2cc, 3, 24, .55, .5); scene.add(fl, fl.target); scenery(45, 7, 5);
+      const ks = [0, 1, 2].map(() => { const k = box(.3, .3, .3, 0xffd54a); k.material.emissive = new THREE.Color(0xffaa00); k.position.set(rnd2(), .7, rnd2()); scene.add(k); return k; });
+      const ghost = box(.8, 2, .8, 0xe8e8e8); ghost.material.transparent = true; ghost.material.opacity = .6; ghost.position.set(14, 1, 14); scene.add(ghost);
+      const door = box(2.2, 2.6, .3, 0x5d4037); door.position.set(0, 1.3, -18); scene.add(door);
+      let got = 0, over = false, won = false, v = new THREE.Vector3();
+      return {
+        tap() { if (over || won) start(g); },
+        update(dt) {
+          if (over || won) return; walk(dt, 5.5);
+          fl.position.copy(camera.position); camera.getWorldDirection(v); fl.target.position.copy(camera.position).addScaledVector(v, 6);
+          ks.forEach((k, i) => { if (k.visible && near(k, player, 1)) { k.visible = false; got++; } k.rotation.y += dt * 2; });
+          chase(ghost, player, 1.5 + got * .8 + g.diff * .3, dt); ghost.position.y = 1 + Math.sin(performance.now() / 300) * .15;
+          if (near(ghost, player, 1.1)) over = true;
+          if (got === 3 && near(door, player, 2.2)) won = true;
+          stat(over ? 'You were caught · tap to retry' : won ? 'You escaped! · tap to play again' : `Keys ${got}/3 · ${got === 3 ? 'Run to the door!' : 'Find the keys'}`);
+        }};
+    },
+    survival(g) {
+      scenery(60, 11, 4); let hunger = 100, hp = 100, t = 0, over = false, won = false;
+      const food = [], wolves = [];
+      const spawnFood = () => { const f = new THREE.Mesh(new THREE.SphereGeometry(.25, 10, 10), mat(0xe53935)); f.position.set(rnd2(), .35, rnd2()); f.castShadow = true; scene.add(f); food.push(f); };
+      for (let i = 0; i < 8; i++) spawnFood();
+      for (let i = 0; i < 2 + g.diff; i++) { const w = box(.8, .6, 1.3, 0x555a60); w.position.set(Math.cos(i * 2.1) * 16, .3, Math.sin(i * 2.1) * 16); scene.add(w); wolves.push(w); }
+      return {
+        tap() { if (over || won) start(g); },
+        update(dt) {
+          if (over || won) return; walk(dt, 6); t += dt; hunger -= (2 + g.diff) * dt;
+          for (let i = food.length - 1; i >= 0; i--) if (near(food[i], player, .9)) { scene.remove(food[i]); food.splice(i, 1); hunger = Math.min(100, hunger + 25); spawnFood(); }
+          wolves.forEach(w => { chase(w, player, 2 + g.diff * .35, dt); if (near(w, player, 1)) hp -= 18 * dt; });
+          if (hunger <= 0) hp -= 8 * dt; if (hp <= 0) over = true; if (t >= 90) won = true;
+          stat(over ? 'You did not survive · tap to retry' : won ? 'You survived! · tap to play again' : `HP ${Math.ceil(hp)} · Hunger ${Math.ceil(Math.max(0, hunger))} · ${Math.ceil(90 - t)}s left`);
+        }};
+    },
+    adventure(g) {
+      scenery(70, 3, 5); let got = 0, won = false;
+      const gems = [0, 1, 2, 3, 4].map(i => { const m = new THREE.Mesh(new THREE.OctahedronGeometry(.4), mat(0x29b6f6)); m.material.emissive = new THREE.Color(0x0277bd); const a = i * 1.26 + .4; m.position.set(Math.cos(a) * (9 + i * 2), 1, Math.sin(a) * (9 + i * 2)); scene.add(m); return m; });
+      const portal = new THREE.Mesh(new THREE.TorusGeometry(1.6, .25, 10, 28), mat(0x555555)); portal.position.set(0, 2, -17); scene.add(portal);
+      [-1.9, 1.9].forEach(x => { const p = box(.7, 4.2, .7, 0x6d6f73); p.position.set(x, 2.1, -17); scene.add(p); });
+      return {
+        tap() { if (won) start(g); },
+        update(dt) {
+          if (won) return; walk(dt, 6.5);
+          gems.forEach(m => { if (m.visible && near(m, player, 1)) { m.visible = false; got++; } m.rotation.y += dt * 2; m.position.y = 1 + Math.sin(performance.now() / 400 + m.position.x) * .2; });
+          const open = got === 5; portal.material.color.set(open ? 0x7c4dff : 0x555555); portal.material.emissive = new THREE.Color(open ? 0x5e35b1 : 0x000000); portal.rotation.z += dt;
+          if (open && near(portal, player, 1.8)) won = true;
+          stat(won ? 'Quest complete! · tap to play again' : `Gems ${got}/5 · ${open ? 'Enter the portal!' : 'Explore the map'}`);
+        }};
     }
   };
   const mode_ui = {swatch() {}, toggle() {}};
 
   function init() {
     renderer = new THREE.WebGLRenderer({canvas: $('canvas'), antialias: true});
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true;
     camera = new THREE.PerspectiveCamera(55, 1, .1, 200);
     addEventListener('keydown', e => keys[e.code] = true); addEventListener('keyup', e => keys[e.code] = false);
     document.querySelectorAll('.pad button').forEach(b => {
@@ -470,7 +544,17 @@ const Game = (() => {
       b.addEventListener('pointerdown', e => { e.preventDefault(); pad.x = x; pad.z = z; });
       ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => b.addEventListener(t, () => pad.x = pad.z = 0));
     });
-    $('canvas').addEventListener('pointerdown', e => mode && mode.tap(e));
+    const cv = $('canvas'), ptrs = new Map(); let pinch = 0, moved = 0;
+    const span = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+    cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY}); moved = 0; if (ptrs.size === 2) pinch = span(); });
+    cv.addEventListener('pointermove', e => {                      // one finger: look around, two fingers: pinch zoom
+      const p = ptrs.get(e.pointerId); if (!p) return;
+      if (ptrs.size === 2) { p.x = e.clientX; p.y = e.clientY; const d = span(); cam.dist = THREE.MathUtils.clamp(cam.dist - (d - pinch) * .03, 0, 16); pinch = d; moved = 99; }
+      else { cam.yaw -= (e.clientX - p.x) * .006; moved += Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y); p.x = e.clientX; p.y = e.clientY; }
+    });
+    cv.addEventListener('pointerup', e => { const tap = ptrs.size === 1 && moved < 8 && ptrs.has(e.pointerId); ptrs.delete(e.pointerId); if (tap && mode) mode.tap(e); });
+    cv.addEventListener('pointercancel', e => ptrs.delete(e.pointerId));
+    cv.addEventListener('wheel', e => { e.preventDefault(); cam.dist = THREE.MathUtils.clamp(cam.dist + e.deltaY * .01, 0, 16); }, {passive: false});
     $('jump').addEventListener('pointerdown', e => { e.preventDefault(); jumpReq = true; });
     $('swatches').onclick = e => mode_ui.swatch(e); $('g-mode').onclick = () => mode_ui.toggle();
     $('g-exit').onclick = stop; addEventListener('resize', resize); ready = true;
@@ -478,23 +562,47 @@ const Game = (() => {
   function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
   function loop() {
     raf = requestAnimationFrame(loop); const dt = Math.min(clock.getDelta(), .05);
-    mode.update(dt); const t = player.position;
-    camera.position.lerp(new THREE.Vector3(t.x, t.y + 9, t.z + 9), .1); camera.lookAt(t.x, t.y, t.z); renderer.render(scene, camera);
+    mode.update(dt); const p = player.position, d = cam.dist, fp = d < 1.5; player.visible = !fp;
+    const L = player.userData.limbs, sw = player.userData.moving ? Math.sin(performance.now() / 120) * .7 : 0;
+    if (L) { L[0].rotation.x = sw; L[1].rotation.x = -sw; L[2].rotation.x = -sw; L[3].rotation.x = sw; }
+    const sn = Math.sin(cam.yaw), cs = Math.cos(cam.yaw);
+    if (fp) { camera.position.set(p.x, p.y + .55, p.z); camera.lookAt(p.x - sn * 5, p.y + .45, p.z - cs * 5); }
+    else { camera.position.lerp(new THREE.Vector3(p.x + sn * d, p.y + 1 + d * .55, p.z + cs * d), .2); camera.lookAt(p.x, p.y + .4, p.z); }
+    renderer.render(scene, camera);
   }
   function start(g) {
-    if (!ready) init(); cancelAnimationFrame(raf);
+    if (!ready) init(); cancelAnimationFrame(raf); cam.yaw = 0; cam.dist = 9;
     scene = new THREE.Scene(); scene.background = new THREE.Color(0x9ad7ff);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x667788, .9)); const sun = new THREE.DirectionalLight(0xffffff, .6); sun.position.set(10, 20, 8); scene.add(sun);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x667788, .9)); const sun = new THREE.DirectionalLight(0xffffff, .6); sun.position.set(10, 20, 8); sun.castShadow = true; Object.assign(sun.shadow.camera, {left:-26, right:26, top:26, bottom:-26, far:60}); sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
     player = makePlayer(); player.position.set(0, .6, 0); scene.add(player);
     if (g.genre !== 'obby') {
-      ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), mat(0x7ec850)); ground.rotation.x = -Math.PI / 2; scene.add(ground);
+      ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), mat(0x7ec850)); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground); if (['builder', 'shooter', 'adventure'].includes(g.genre) === false) {} else if (g.genre !== 'adventure') scenery(34, 5, 5);
       const gr = new THREE.GridHelper(40, 40, 0x2f6b2f, 0x2f6b2f); gr.position.y = .01; scene.add(gr);
     }
     mode = modes[g.genre](g); $('game').dataset.g = g.genre; $('g-title').textContent = g.title;
     camera.position.set(0, 9, 9); $('game').classList.add('open'); document.body.classList.add('playing'); resize(); clock.start(); loop();
   }
   function stop() { cancelAnimationFrame(raf); $('game').classList.remove('open'); document.body.classList.remove('playing'); pad.x = pad.z = 0; }
-  return {start, stop};
+  return {start, stop, makePlayer};
+})();
+
+/* ===== 3D avatar preview on the Avatar page (drag to spin) ===== */
+const AvatarView = (() => {
+  let raf;
+  function mount() {
+    const cv = $('av-canvas'); if (!cv) return; cancelAnimationFrame(raf);
+    const r = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}), w = cv.clientWidth || 200, h = cv.clientHeight || 266;
+    r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.setSize(w, h, false);
+    const sc = new THREE.Scene(), cm = new THREE.PerspectiveCamera(32, w / h, .1, 50), model = Game.makePlayer(); sc.add(model);
+    sc.add(new THREE.HemisphereLight(0xffffff, 0x8888aa, 1)); const d = new THREE.DirectionalLight(0xffffff, .7); d.position.set(3, 5, 4); sc.add(d);
+    cm.position.set(0, .2, 4.2); cm.lookAt(0, 0, 0); let drag = false, lx = 0;
+    cv.onpointerdown = e => { drag = true; lx = e.clientX; cv.setPointerCapture(e.pointerId); };
+    cv.onpointermove = e => { if (drag) { model.rotation.y += (e.clientX - lx) * .01; lx = e.clientX; } };
+    cv.onpointerup = () => drag = false;
+    const tick = () => { if (!document.body.contains(cv)) { r.dispose(); r.forceContextLoss(); return; } if (!drag) model.rotation.y += .01; r.render(sc, cm); raf = requestAnimationFrame(tick); };
+    tick();
+  }
+  return {mount};
 })();
 
 /* ===== Ro-Bucks wallet + shop (DEMO: balances live in this browser; no real payments) ===== */
@@ -538,7 +646,7 @@ function sendRequest(raw) {                      // returns {err} or {ok}
   const name = raw.trim(), key = lc(name), all = getUsers(), mine = all[lc(me().name)], them = all[key];
   if (!FRIEND_RE.test(name)) return {err: 'Names are 3–20 letters, numbers or underscores.'};
   if (key === lc(mine.name)) return {err: "You can't add yourself."};
-  if (!them) return {err: `No player named "${name}" was found.`};
+  if (!them) { mine.outbox ??= []; if (mine.outbox.some(o => lc(o.to) === key)) return {ok: `Your request to ${name} is saved and waiting for them to join.`}; mine.outbox.push({to: name}); LS.set('rb_users', all); return {ok: `${name} has no account in this browser yet. Your request is saved and will be sent when they sign up here.`}; }
   for (const u of [mine, them]) { u.friends ??= []; u.requests ??= []; }
   if (mine.friends.some(f => lc(f.name) === key)) return {err: `You and ${them.name} are already friends.`};
   if (them.requests.some(r => lc(r.from) === lc(mine.name))) return {err: `You already sent ${them.name} a request.`};
@@ -606,7 +714,20 @@ document.addEventListener('click', e => {
 });
 
 /* presence heartbeat: marks you active and refreshes statuses */
-function beat() { const u = me(); if (u) { u.lastSeen = Date.now(); saveUser(u); } refreshIdle(); }
+function deliverOutbox() {                       // send saved requests once the named account exists
+  const all = getUsers(); let changed = false;
+  for (const a of Object.values(all)) {
+    if (!a.outbox?.length) continue;
+    a.outbox = a.outbox.filter(o => {
+      const t = all[lc(o.to)]; if (!t) return true;
+      t.requests ??= []; t.friends ??= []; changed = true;
+      if (!t.requests.some(r => lc(r.from) === lc(a.name)) && !t.friends.some(f => lc(f.name) === lc(a.name))) t.requests.push({from: a.name, at: Date.now()});
+      return false;
+    });
+  }
+  if (changed) LS.set('rb_users', all);
+}
+function beat() { deliverOutbox(); const u = me(); if (u) { u.lastSeen = Date.now(); saveUser(u); } refreshIdle(); }
 beat(); setInterval(beat, 30000);
 addEventListener('storage', e => { if (e.key === 'rb_users') refreshIdle(); });
 
