@@ -6,6 +6,7 @@
 <title>RoBlocks</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#f7f7f8;--surface:#fff;--text:#1a1b1f;--muted:#5f6368;--line:#e3e4e8;--hover:#ececf0;--accent:#2f6bff;--play:#1fa84f;--play-h:#188a40;--danger:#c0392b;
 --font:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif;--top:56px;--side:240px;--nav:60px;--r:8px;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
@@ -73,7 +74,7 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
 @media (max-width:1024px){
  .shell{grid-template-columns:1fr}
  .sidebar{position:fixed;inset:auto 0 0 0;height:calc(var(--nav) + env(safe-area-inset-bottom,0px));padding:0 8px env(safe-area-inset-bottom,0px);border-right:0;border-top:1px solid var(--line);z-index:20}
- .nav{grid-template-columns:repeat(5,1fr);height:var(--nav);gap:0}
+ .nav{grid-template-columns:repeat(6,1fr);height:var(--nav);gap:0}
  .nav a{flex-direction:column;justify-content:center;gap:2px;height:100%;padding:0;font-size:11px;font-weight:600;border-radius:0;background:none!important}
  .nav a[aria-current="page"],.nav a[aria-current="page"] svg{color:var(--accent);stroke:var(--accent)}
  main{padding:20px 16px calc(var(--nav) + 32px + env(safe-area-inset-bottom,0px))}.topbar{padding:0 16px}
@@ -134,6 +135,11 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
 .chat-log{max-height:30vh;overflow:auto;display:grid;gap:4px;margin-bottom:8px;font-size:14px;word-break:break-word}
 .chat-form{display:flex;gap:6px}.chat-form input{flex:1;min-width:0;height:38px;padding:0 10px;border:0;border-radius:8px;background:#2b2d33;color:#fff;font:inherit}
 .chat-form button{height:38px;padding:0 14px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:600 14px var(--font);cursor:pointer}
+.pf{display:grid;grid-template-columns:210px 1fr;gap:24px;align-items:start}@media (max-width:700px){.pf{grid-template-columns:1fr}}
+.rep{background:none;border:0;color:#9aa0a6;cursor:pointer;font-size:12px;padding:0 4px}.rep:disabled{cursor:default;color:#6c6}
+@media (hover:none),(pointer:coarse){.stick,.jump{display:block}}
+body.touch .stick,body.touch .jump{display:block}
+body.touch .swatches{left:auto;right:16px;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:none;flex-direction:column}
 </style>
 <link rel="icon" id="fav">
 </head>
@@ -150,6 +156,7 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
     <li><a href="#/avatar" data-r="avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Avatar</a></li>
     <li><a href="#/news" data-r="news"><svg viewBox="0 0 24 24"><path d="M5 4h11v16H5zM16 9h3v9a2 2 0 01-2 2M8 8h5M8 12h5M8 16h5"/></svg>News</a></li>
     <li><a href="#/create" data-r="create"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Create</a></li>
+      <li><a href="#/profile" data-r="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1-3.5 4-5 7-5s6 1.5 7 5"/><circle cx="12" cy="12" r="10"/></svg>Profile</a></li>
   </ul></nav></aside>
   <main id="view"></main>
 </div>
@@ -198,6 +205,7 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
 /* ===== helpers + storage (per-device; see notes on real accounts) ===== */
 const $ = id => document.getElementById(id);
 $('fav').href = $('logo').src;
+if (navigator.maxTouchPoints > 0 || 'ontouchstart' in window) document.body.classList.add('touch');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LS = {get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
             set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }};
@@ -218,7 +226,7 @@ const userGames = () => LS.get('rb_games', []);
 const allGames = () => [...userGames(), ...BASE];
 const findGame = id => allGames().find(g => g.id === id);
 const getUsers = () => LS.get('rb_users', {});
-const me = () => { const k = LS.get('rb_session', null); const u = k && getUsers()[k]; if (u) { u.bucks ??= 100; u.owned ??= []; u.avatar ??= {}; u.body ??= 'male'; } return u || null; };
+const me = () => { const k = LS.get('rb_session', null); const u = k && getUsers()[k]; if (u) { u.bucks ??= 100; u.owned ??= []; u.avatar ??= {}; u.body ??= 'male'; u.joined ??= Date.now(); u.plays ??= {}; } return u || null; };
 const saveUser = u => { const all = getUsers(); all[u.name.toLowerCase()] = u; LS.set('rb_users', all); };
 /* ===== avatar items: price 0 = free, otherwise cost in Ro-Bucks (R$) ===== */
 const SLOTS = {skin:'Avatars', hair:'Hair', shirt:'Shirts', pants:'Pants', hat:'Hats'};
@@ -233,7 +241,16 @@ const ITEMS = [
  ['shirt-black','shirt','Black Jacket',75,'#222831'],['shirt-purple','shirt','Purple Hoodie',100,'#8e44ad'],['shirt-neon','shirt','Neon Vest',200,'#39ff14'],
  ['pants-dark','pants','Dark Jeans',0,'#2a2f33',null,{shoe:'#f2f2f2'}],['pants-maroon','pants','Maroon Pants',0,'#7b2d3b',null,{shoe:'#1a1a1a'}],
  ['pants-jeans','pants','Jeans',0,'#3b5b92'],['pants-black','pants','Black Pants',0,'#2d2d2d'],['pants-khaki','pants','Khakis',40,'#c2b280'],['pants-camo','pants','Camo',120,'#556b2f'],
- ['hat-none','hat','No Hat',0,null],['hat-cap','hat','Red Cap',60,'#d63031','cap'],['hat-wizard','hat','Wizard Hat',250,'#6c5ce7','tall'],['hat-crown','hat','Gold Crown',400,'#f1c40f','crown']
+ ['hat-none','hat','No Hat',0,null],['hat-cap','hat','Red Cap',60,'#d63031','cap'],['hat-wizard','hat','Wizard Hat',250,'#6c5ce7','tall'],['hat-crown','hat','Gold Crown',400,'#f1c40f','crown'],
+ ['skin-peach','skin','Peach',0,'#f7d6b8'],['skin-olive','skin','Olive',0,'#c9a77c'],['skin-brown','skin','Brown',0,'#6b4423'],
+ ['skin-pink','skin','Bubblegum',60,'#ff9ecb'],['skin-alien','skin','Alien',120,'#5ee6a8'],['skin-monster','skin','Purple Monster',150,'#a678f0'],
+ ['skin-ice','skin','Ice',200,'#9fe3ff'],['skin-lava','skin','Lava',250,'#ff5a1f'],['skin-skeleton','skin','Skeleton',300,'#ececec'],['skin-shadow','skin','Shadow',350,'#2b2b36'],
+ ['hair-longblack','hair','Long Black',0,'#1f1f24','long'],['hair-longbrown','hair','Long Brown',0,'#8a4b24','long'],['hair-spikyblack','hair','Spiky Black',0,'#1f1f24','spiky'],
+ ['hair-spikyblue','hair','Spiky Blue',100,'#2f6bff','spiky'],['hair-spikygreen','hair','Spiky Green',100,'#2ecc71','spiky'],['hair-longwhite','hair','Long White',120,'#f1f1f1','long'],['hair-longpink','hair','Long Pink',120,'#ff7eb6','long'],
+ ['shirt-yellow','shirt','Yellow Tee',0,'#f1c40f'],['shirt-green','shirt','Green Tee',0,'#2ecc71'],['shirt-orange','shirt','Orange Hoodie',60,'#ff8a1f'],['shirt-pink','shirt','Pink Hoodie',70,'#ff7eb6'],
+ ['shirt-jersey','shirt','Green Jersey',80,'#1fa84f',null,{under:'#ffffff'}],['shirt-space','shirt','Space Suit',250,'#e8e8ee',null,{under:'#2f6bff'}],['shirt-goldjacket','shirt','Gold Jacket',300,'#d4af37',null,{under:'#1d1d22'}],
+ ['pants-red','pants','Red Pants',40,'#c0392b'],['pants-pink','pants','Pink Pants',50,'#ff9ecb'],['pants-cargo','pants','Green Cargo',80,'#4b5a2b'],['pants-gold','pants','Gold Pants',300,'#d4af37'],
+ ['hat-beanie','hat','Blue Beanie',40,'#2f6bff','cap'],['hat-tophat','hat','Top Hat',150,'#1a1a1f','tall'],['hat-santa','hat','Santa Hat',120,'#d63031','tall'],['hat-greencap','hat','Green Cap',60,'#1fa84f','cap'],['hat-goldcrown2','hat','Silver Crown',350,'#cfd8dc','crown']
 ].map(([id, slot, name, price, color, style, x]) => ({id, slot, name, price, color, style, ...x}));
 const DEFS = {
   male:   {skin:'skin-white', hair:'hair-brown', shirt:'shirt-jacket', pants:'pants-dark',   hat:'hat-none'},
@@ -245,6 +262,16 @@ const CROWN = '<svg class="crown" viewBox="0 0 24 24" role="img" aria-label="Own
 const isOwner = n => String(n).toLowerCase() === 'roblocks';
 const who = n => (isOwner(n) ? CROWN : '') + esc(n);
 const norm = n => n.toLowerCase().replace(/[_\s]/g, '').replace(/0/g, 'o').replace(/[1il|]/g, 'l');
+/* ===== moderation: chat filter ===== */
+const BAD = ['fuck', 'shit', 'bitch', 'asshole', 'bastard', 'crap', 'dick', 'piss', 'slut', 'whore', 'cunt', 'damn', 'nigger', 'nigga', 'fag', 'retard'];
+const LEET = {'0':'o','1':'i','3':'e','4':'a','5':'s','7':'t','@':'a','$':'s','!':'i'};
+const flat = w => w.toLowerCase().replace(/[013457@$!]/g, c => LEET[c]).replace(/[^a-z]/g, '').replace(/(.)\1+/g, '$1');
+const BADN = BAD.map(flat);
+const isBad = w => { const t = flat(w); return !!t && BADN.some(b => t === b || ['s', 'es', 'ed', 'er', 'ing', 'y'].some(x => t === b + x)); };
+const censor = s => String(s).replace(/\S+/g, w => isBad(w) ? '*'.repeat(w.length) : w);
+const AWARDS = [['🎮', 'First Steps', 'Play a game', u => Object.keys(u.plays || {}).length >= 1], ['🧭', 'Explorer', 'Play 5 different games', u => Object.keys(u.plays || {}).length >= 5],
+  ['🛠️', 'Creator', 'Publish a game', u => userGames().some(g => g.author === u.name)], ['🤝', 'Social', 'Make a friend', u => (u.friends || []).length >= 1],
+  ['👗', 'Fashionista', 'Buy an avatar item', u => (u.owned || []).some(i => item(i))], ['💎', 'Collector', 'Own 3 items', u => (u.owned || []).filter(i => item(i)).length >= 3]];
 const figure = o => {
   const I = s => item(o[s]), sk = I('skin').color, sh = I('shirt'), pa = I('pants'), hr = I('hair'), h = I('hat'), [hw, hh] = h.style ? HAT[h.style] : [0, 0];
   const r = (x, y, w, ht, f, rx = 0) => `<rect x="${x}" y="${y}" width="${w}" height="${ht}" rx="${rx}" fill="${f}"/>`;
@@ -256,14 +283,17 @@ const figure = o => {
 };
 /* ===== NEWS: add a new post at the TOP of this list whenever you update ===== */
 const POSTS = [
+  {date:'2026-10-08', tag:'Update', title:'30 new avatar items', body:['New avatars: Peach, Olive, Brown, Bubblegum, Alien, Purple Monster, Ice, Lava, Skeleton and Shadow.','New hair: long and spiky styles in black, brown, blue, green, white and pink. Plus new shirts, pants and hats, with free and paid options. Visit the Avatar page to try them on.']},
+  {date:'2026-10-08', tag:'Update', title:'Multiplayer is here', body:['Play with your friends on any device. Everyone who opens the same game sees each other walk around with name tags, and the players list and chat now work across phones and computers.','In Builder games, blocks that one player places or removes appear for everyone in the game.']},
+  {date:'2026-10-08', tag:'Update', title:'Profiles, moderation and a joystick fix', body:['New Profile page: see your avatar, Ro-Bucks, awards, games you played and made, and the avatar items you bought. Tap your name in the top bar to open it.','Chat now censors swear words. Tap the report button next to a message and the report goes to the official RoBlocks account, which can dismiss it or mute the player for 24 hours.','Fixed the mobile joystick, which was hidden on some phones and tablets. It now shows on every touch device.']},
   {date:'2026-10-07', tag:'Update', title:'In-game menu: players, chat and leave', body:['Every game now has a menu in the top right corner. Tap the list button to see how many players are in the game, the chat button to talk to them, and the speaker to mute sound effects.','Tap the RoBlocks logo to open Leave or Stay. Leave takes you back to the dashboard, Stay keeps you in the game.']},
   {date:'2026-10-07', tag:'Update', title:'RoBlocks Studio, joystick and the official logo', body:['RoBlocks Studio: games are now made in the Studio. Build your world with blocks, write simple code rules, pick sound effects, test it, then publish.','Mobile: the four arrows are replaced with a joystick, and every game now has a Jump button.','The official RoBlocks logo is now in the top bar and used as the site icon. News dates are fixed.']},
-  {date:'2026-10-07', tag:'Update', title:'Horror, Survival and Adventure + 3D avatars', body:['Three new game types: Horror (dark map, flashlight, 3 keys and a ghost), Survival (hunger, wolves, 90 seconds) and Adventure (collect 5 gems and enter the portal). All can be chosen on the Create page.','Games now have trees, rocks, shadows and animated characters. Pinch to zoom (or use the mouse wheel) to switch between 3rd and 1st person, and drag to look around.','Avatars are now real 3D models with arms, legs and a face. Drag the avatar on the Avatar page to spin it.','Friend requests to a name with no account in this browser are now saved and delivered when that player signs up, instead of saying they do not exist.']},
-  {date:'2026-10-07', tag:'Update', title:'Friends and friend requests', body:['Add friends by display name from the Friends section on Home. They get a request they can accept or decline, and you can remove a friend at any time.','Friends show a green dot when online and a gray dot when offline.']},
-  {date:'2026-10-07', tag:'Update', title:'Starter avatars, hair and the News page', body:['New accounts now start with a default look. Choose a Male or Female look when you sign up, and switch it any time on the Avatar page.','There is a new Hair section with free and paid styles, and the official RoBlocks account now shows an Owner crown.']},
-  {date:'2026-10-07', tag:'Update', title:'Ro-Bucks and the Avatar shop', body:['Dress your character with free and paid clothing. New accounts get 100 Ro-Bucks to start. Creators can now set a price for their games.']},
-  {date:'2026-10-07', tag:'Update', title:'Shooter and Obby games, accounts and Create', body:['Games now come in three types: Builder, Shooter and Obby. Log in or sign up to play, and publish your own game from the Create page.']},
-  {date:'2026-10-07', tag:'Launch', title:'Welcome to RoBlocks', body:['RoBlocks is a browser-based 3D game platform that works on computers, tablets and phones. Pick a game and press Play.']}
+  {date:'2026-10-06', tag:'Update', title:'Horror, Survival and Adventure + 3D avatars', body:['Three new game types: Horror (dark map, flashlight, 3 keys and a ghost), Survival (hunger, wolves, 90 seconds) and Adventure (collect 5 gems and enter the portal). All can be chosen on the Create page.','Games now have trees, rocks, shadows and animated characters. Pinch to zoom (or use the mouse wheel) to switch between 3rd and 1st person, and drag to look around.','Avatars are now real 3D models with arms, legs and a face. Drag the avatar on the Avatar page to spin it.','Friend requests to a name with no account in this browser are now saved and delivered when that player signs up, instead of saying they do not exist.']},
+  {date:'2026-10-06', tag:'Update', title:'Friends and friend requests', body:['Add friends by display name from the Friends section on Home. They get a request they can accept or decline, and you can remove a friend at any time.','Friends show a green dot when online and a gray dot when offline.']},
+  {date:'2026-10-06', tag:'Update', title:'Starter avatars, hair and the News page', body:['New accounts now start with a default look. Choose a Male or Female look when you sign up, and switch it any time on the Avatar page.','There is a new Hair section with free and paid styles, and the official RoBlocks account now shows an Owner crown.']},
+  {date:'2026-10-06', tag:'Update', title:'Ro-Bucks and the Avatar shop', body:['Dress your character with free and paid clothing. New accounts get 100 Ro-Bucks to start. Creators can now set a price for their games.']},
+  {date:'2026-10-06', tag:'Update', title:'Shooter and Obby games, accounts and Create', body:['Games now come in three types: Builder, Shooter and Obby. Log in or sign up to play, and publish your own game from the Create page.']},
+  {date:'2026-10-06', tag:'Launch', title:'Welcome to RoBlocks', body:['RoBlocks is a browser-based 3D game platform that works on computers, tablets and phones. Pick a game and press Play.']}
 ];
 
 /* ===== RoBlocks Studio: sounds, safe script language, draft ===== */
@@ -302,7 +332,7 @@ const row = (t, list) => list.length ? `<section class="row"><h2>${t}</h2><div c
 const views = {
   home() {
     const u = me(), recent = LS.get('rb_recent', []).map(findGame).filter(Boolean);
-    return `<h1>Home</h1><a class="banner" href="#/news"><b>Latest:</b> ${esc(POSTS[0].title)}</a>${friendsPanel()}${row('Continue playing', recent)}${u ? row('Made by you', userGames().filter(g => g.author === u.name)) : ''}${row('Recommended for you', allGames())}`;
+    return `<h1>Home</h1><a class="banner" href="#/news"><b>Latest:</b> ${esc(POSTS[0].title)}</a>${u && isOwner(u.name) && LS.get('rb_reports', []).some(r => r.open) ? '<a class="banner" href="#/mod"><b>Moderation:</b> open reports are waiting</a>' : ''}${friendsPanel()}${row('Continue playing', recent)}${u ? row('Made by you', userGames().filter(g => g.author === u.name)) : ''}${row('Recommended for you', allGames())}`;
   },
   discover() {
     const q = state.q.trim().toLowerCase();
@@ -323,6 +353,24 @@ const views = {
   },
   news() {
     return `<h1>News</h1>${POSTS.map(p => `<article class="post"><span class="tag2">${esc(p.tag)}</span><time datetime="${p.date}">${new Date(p.date + 'T00:00').toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'})}</time><h2>${esc(p.title)}</h2>${p.body.map(t => `<p>${esc(t)}</p>`).join('')}</article>`).join('')}`;
+  },
+  profile() {
+    const u = me();
+    if (!u) return `<h1>Profile</h1><p class="muted">Log in to see your profile.</p><button class="btn" id="friends-login" type="button">Log in</button>`;
+    const played = Object.keys(u.plays || {}).map(findGame).filter(Boolean), made = userGames().filter(g => g.author === u.name), bought = (u.owned || []).map(item).filter(Boolean);
+    const aw = AWARDS.map(([ic, n, d, f]) => { const ok = f(u); return `<div class="item" style="opacity:${ok ? 1 : .45}"><div style="font-size:28px">${ic}</div><div class="card-title">${n}</div><div class="card-meta">${ok ? 'Earned' : d}</div></div>`; }).join('');
+    const own = bought.map(i => `<div class="item"><div class="prev" style="background:${i.color || 'var(--hover)'}">${i.color ? '' : 'None'}</div><div class="card-title">${esc(i.name)}</div><div class="card-meta">${SLOTS[i.slot]}</div></div>`).join('');
+    return `<h1>Profile</h1><div class="pf"><div class="stage"><canvas id="av-canvas" class="av3d" aria-label="Your 3D avatar"></canvas><h2 style="margin:8px 0 4px">${who(u.name)}</h2><p class="muted" style="margin:0">R$ ${u.bucks} · Joined ${new Date(u.joined).toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'})}</p></div>
+      <div><p class="muted">${played.length} games played · ${made.length} games made · ${(u.friends || []).length} friends · ${bought.length} items bought</p>
+      <section class="row"><h2>Awards</h2><div class="items">${aw}</div></section>
+      ${row('Games you played', played)}${row('Games you made', made)}
+      <section class="row"><h2>Avatars and items you bought</h2>${own ? `<div class="items">${own}</div>` : '<p class="muted">Nothing yet. Visit the Avatar page to shop.</p>'}</section></div></div>`;
+  },
+  mod() {
+    const u = me();
+    if (!u || !isOwner(u.name)) return `<h1>Moderation</h1><p class="muted">Only the official RoBlocks account can see reports.</p>`;
+    const rs = LS.get('rb_reports', []).filter(r => r.open);
+    return `<h1>Moderation</h1><p class="muted">${rs.length} open report${rs.length === 1 ? '' : 's'}. Reports made in this browser arrive here.</p>${rs.map(r => `<div class="post"><b>${who(r.against)}</b> in ${esc(r.game)}<p>"${esc(r.text)}"</p><small class="muted">Reported by ${who(r.by)} · ${new Date(r.at).toLocaleString()}</small><div style="display:flex;gap:8px;margin-top:10px"><button class="btn-2" data-mod="dismiss" data-id="${esc(r.id)}">Dismiss</button><button class="btn" data-mod="mute" data-id="${esc(r.id)}">Mute 24h</button></div></div>`).join('') || '<p class="empty">No open reports.</p>'}`;
   },
   create() {
     return `<h1>Create</h1><div class="post"><h2>Make your game in RoBlocks Studio</h2><p>Build your world with blocks, write simple code rules, add sound effects, test it, then publish.</p><a class="btn" style="display:inline-flex;align-items:center;height:42px" href="#/studio">Open RoBlocks Studio</a></div>`;
@@ -349,7 +397,7 @@ function render() {
   $('view').innerHTML = views[name]();
   document.querySelectorAll('.nav a').forEach(a => a.dataset.r === (name === 'studio' ? 'create' : name) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   scrollTo(0, 0);
-  if (name === 'avatar') AvatarView.mount();
+  if (name === 'avatar' || name === 'profile') AvatarView.mount();
 }
 addEventListener('hashchange', render);
 $('q').addEventListener('input', e => { state.q = e.target.value; location.hash === '#/discover' ? render() : (location.hash = '#/discover'); });
@@ -373,6 +421,7 @@ $('auth-form').addEventListener('submit', async e => {
   if (pass.length < 6) return fail('Password must be at least 6 characters.');
   if (signup) {
     if (norm(name) === 'roblocks' && key !== 'roblocks') return fail('That name is reserved.');
+    if (censor(name) !== name) return fail('That name is not allowed.');
     if (users[key]) return fail('That display name is taken.');
     const salt = [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2, '0')).join('');
     users[key] = {name, salt, hash: await sha(salt + pass), email: mail || null, bucks: 100, owned: [], avatar: {}, body: $('a-body').value === 'female' ? 'female' : 'male'};
@@ -383,7 +432,7 @@ $('auth-form').addEventListener('submit', async e => {
 });
 function userbar() {
   const u = me();
-  $('userbar').innerHTML = u ? `<button class="btn-2" id="wallet">R$ ${u.bucks}</button><span id="uname">${who(u.name)}</span><button class="btn-2" id="logout">Log out</button>` : `<button class="btn" id="login">Log in</button>`;
+  $('userbar').innerHTML = u ? `<button class="btn-2" id="wallet">R$ ${u.bucks}</button><a id="uname" href="#/profile" style="color:inherit;text-decoration:none">${who(u.name)}</a><button class="btn-2" id="logout">Log out</button>` : `<button class="btn" id="login">Log in</button>`;
 }
 $('userbar').addEventListener('click', e => {
   if (e.target.id === 'logout') { LS.set('rb_session', null); userbar(); render(); }
@@ -408,7 +457,7 @@ $('m-close').onclick = () => $('modal').close();
 $('modal').addEventListener('click', e => { if (e.target === $('modal')) $('modal').close(); });
 $('m-play').onclick = () => {
   const g = current; $('modal').close();
-  requireAuth(() => { const u = me(); if (g.price && u.name !== g.author && !u.owned.includes('g:' + g.id) && !spend(g.price, 'g:' + g.id)) return; LS.set('rb_recent', [g.id, ...LS.get('rb_recent', []).filter(i => i !== g.id)].slice(0, 8)); Game.start(g); });
+  requireAuth(() => { const u = me(); if (g.price && u.name !== g.author && !u.owned.includes('g:' + g.id) && !spend(g.price, 'g:' + g.id)) return; LS.set('rb_recent', [g.id, ...LS.get('rb_recent', []).filter(i => i !== g.id)].slice(0, 8)); const w = me(); w.plays = {...w.plays, [g.id]: (w.plays?.[g.id] || 0) + 1}; saveUser(w); Game.start(g); });
 };
 document.addEventListener('submit', e => {
   if (e.target.id !== 'create-form') return; e.preventDefault();
@@ -420,6 +469,31 @@ document.addEventListener('submit', e => {
     LS.set('rb_games', [g, ...userGames()]); location.hash = '#/home'; render(); openGame(g);
   });
 });
+
+/* ===== multiplayer: Supabase Realtime (presence + broadcast). The key below is the PUBLIC publishable key. ===== */
+const SB_URL = 'https://ebyfuyzvcgtishqvlnia.supabase.co', SB_KEY = 'sb_publishable_Gq4aIcDEjzfZtaVbnB2o3g_7GfCk_Wn';
+const sb = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+const cleanOutfit = o => { const r = {...DEFS.male}; for (const k of Object.keys(SLOTS)) { const it = item(o?.[k]); if (it && it.slot === k) r[k] = it.id; } return r; };   // never trust other players' data
+const Net = (() => {
+  let ch = null, status = 'offline', cb = {}, lastPos = 0; const myId = Math.random().toString(36).slice(2, 10), seen = {};
+  const num = v => Math.max(-80, Math.min(80, +v || 0));
+  const send = (event, payload) => { if (ch && status === 'online') ch.send({type: 'broadcast', event, payload: {i: myId, ...payload}}); };
+  return {
+    id: myId, get status() { return status; },
+    join(game, info, handlers) {
+      this.leave(); if (!sb || /^(test|studio)$/.test(game.id)) return; cb = handlers; status = 'connecting';
+      ch = sb.channel('rb-' + String(game.id).replace(/[^a-z0-9-]/gi, '').slice(0, 40), {config: {broadcast: {self: false}, presence: {key: myId}}});
+      ch.on('presence', {event: 'sync'}, () => cb.peers?.(ch.presenceState()))
+        .on('broadcast', {event: 'pos'}, ({payload: p}) => cb.pos?.({id: String(p.i).slice(0, 12), x: num(p.x), y: num(p.y), z: num(p.z), r: num(p.r)}))
+        .on('broadcast', {event: 'blk'}, ({payload: p}) => cb.blk?.(p))
+        .on('broadcast', {event: 'chat'}, ({payload: p}) => { const now = Date.now(), k = String(p.i); if (now - (seen[k] || 0) < 700) return; seen[k] = now; cb.chat?.({n: String(p.n).slice(0, 20), t: String(p.t).slice(0, 120)}); })
+        .subscribe(st => { status = st === 'SUBSCRIBED' ? 'online' : st === 'CONNECTING' ? 'connecting' : 'offline'; if (st === 'SUBSCRIBED') ch.track({n: info.name, o: info.outfit}); });
+    },
+    pos(x, y, z, r) { const t = Date.now(); if (status !== 'online' || t - lastPos < 100) return; lastPos = t; send('pos', {x, y, z, r}); },
+    chat(n, t) { send('chat', {n, t}); }, blk(p) { send('blk', p); },
+    leave() { cb = {}; if (ch && sb) sb.removeChannel(ch); ch = null; status = 'offline'; }
+  };
+})();
 
 /* ===== 3D game: one scaffold, a mode per genre ===== */
 const Game = (() => {
@@ -443,8 +517,8 @@ const Game = (() => {
     hvy -= 22 * dt; p.y = Math.max(.6, p.y + hvy * dt); if (p.y <= .6) hvy = 0;
   }
   const stat = t => $('g-stat').textContent = t;
-  function makePlayer() {                        // real 3D character: legs, arms, torso, head, face, hair, hat
-    const o = outfit(), I = s => item(o[s]), c = x => parseInt(x.slice(1), 16), grp = new THREE.Group();
+  function makePlayer(o = outfit()) {                        // real 3D character: legs, arms, torso, head, face, hair, hat
+    const I = s => item(o[s]), c = x => parseInt(x.slice(1), 16), grp = new THREE.Group();
     const pa = I('pants'), sh = I('shirt'), hr = I('hair'), hat = I('hat'), sk = c(I('skin').color);
     const put = (w, h, d, x, y, z, col, par = grp) => { const m = box(w, h, d, col); m.position.set(x, y, z); par.add(m); };
     const limb = (x, y, fill) => { const g = new THREE.Group(); g.position.set(x, y, 0); grp.add(g); fill(g); return g; };
@@ -453,7 +527,7 @@ const Game = (() => {
     put(.54, .45, .34, 0, .025, 0, c(sh.color)); if (sh.under) put(.2, .45, .01, 0, .025, .175, c(sh.under));
     put(.4, .38, .38, 0, .44, 0, sk);
     put(.06, .06, .02, -.09, .48, .195, 0x222222); put(.06, .06, .02, .09, .48, .195, 0x222222); put(.16, .03, .02, 0, .37, .195, 0x222222);
-    if (hr.color) { const hc = c(hr.color); put(.43, .1, .43, 0, .66, 0, hc); put(.43, .22, .08, 0, .54, -.2, hc); if (hr.style === 'bun') put(.16, .16, .16, 0, .78, -.05, hc); else put(.43, .08, .08, 0, .6, .2, hc); }
+    if (hr.color) { const hc = c(hr.color); put(.43, .1, .43, 0, .66, 0, hc); put(.43, .22, .08, 0, .54, -.2, hc); if (hr.style === 'bun') put(.16, .16, .16, 0, .78, -.05, hc); else if (hr.style === 'spiky') [-.13, 0, .13].forEach(x => put(.1, .2, .1, x, .8, 0, hc)); else { put(.43, .08, .08, 0, .6, .2, hc); if (hr.style === 'long') { put(.06, .4, .3, -.22, .42, -.05, hc); put(.06, .4, .3, .22, .42, -.05, hc); } } }
     if (hat.color) { const [w, hh] = HAT[hat.style]; put(w, hh, w, 0, (hr.color ? .71 : .63) + hh / 2, 0, c(hat.color)); }
     grp.userData.limbs = [...legs, ...arms];
     return grp;
@@ -471,6 +545,20 @@ const Game = (() => {
   const rnd2 = () => (Math.random() - .5) * 32, near = (a, b, d) => a.position.distanceTo(b.position) < d, chase = (m, to, sp, dt) => { const v = to.position.clone().sub(m.position).setY(0); m.position.addScaledVector(v.normalize(), sp * dt); m.rotation.y = Math.atan2(v.x, v.z); };
 
 
+  /* other players */
+  const remotes = new Map();
+  const nameTag = t => { const c = document.createElement('canvas'); c.width = 256; c.height = 64; const x = c.getContext('2d'); x.font = 'bold 30px sans-serif'; x.textAlign = 'center'; x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, 8, 256, 48); x.fillStyle = '#fff'; x.fillText(t, 128, 44);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), depthTest: false})); sp.scale.set(2, .5, 1); sp.position.y = 1.15; return sp; };
+  function syncPeers(state) {
+    const keep = new Set();
+    for (const [id, arr] of Object.entries(state)) {
+      if (id === Net.id || !arr[0]) continue; keep.add(id);
+      if (!remotes.has(id)) { const name = String(arr[0].n).slice(0, 20), g = makePlayer(cleanOutfit(arr[0].o)); g.add(nameTag(name)); g.position.set(0, .6, 0); scene.add(g); remotes.set(id, {g, name, t: g.position.clone(), r: 0}); }
+    }
+    for (const [id, r] of remotes) if (!keep.has(id)) { scene.remove(r.g); remotes.delete(id); }
+  }
+  function netJoin(g) { const u = me(); Net.join(g, {name: u.name, outfit: outfit()}, {peers: syncPeers, pos: p => { const r = remotes.get(p.id); if (r) { r.t.set(p.x, p.y, p.z); r.r = p.r; } }, blk: p => mode_ui.remote(p), chat: m => Menu.remoteChat(m)}); }
+
   const modes = {
     builder(g) {
       const blocks = []; let color = 0x3498db, del = false;
@@ -482,16 +570,21 @@ const Game = (() => {
       stat('Tap the ground to build');
       const addBlock = (x, y, z, i) => { const b = box(1, 1, 1, CS[i] ?? CS[3]); b.position.set(x, y, z); b.userData.ci = i; scene.add(b); blocks.push(b); };
       if (g.genre === 'studio') { (g.blocks || []).forEach(a => addBlock(...a)); g.save = () => { g.blocks = blocks.map(b => [b.position.x, b.position.y, b.position.z, b.userData.ci]); }; stat('Build your world · tap to place blocks'); }
+      mode_ui.remote = p => {                    // another player placed or removed a block
+        const x = +p.x, y = +p.y, z = +p.z; if (![x, y, z].every(Number.isFinite) || Math.abs(x) > 25 || Math.abs(z) > 25 || y < 0 || y > 30) return;
+        const at = blocks.find(b => b.position.x === x && b.position.y === y && b.position.z === z);
+        if (p.a === 'd') { if (at) { scene.remove(at); blocks.splice(blocks.indexOf(at), 1); } } else if (!at && blocks.length < 1500) addBlock(x, y, z, Math.max(0, Math.min(5, p.c | 0)));
+      };
       return {
         update: dt => walk(dt, 6),
         tap(e) {
           const h = pick(e, [ground, ...blocks]); if (!h) return;
-          if (del) { if (h.object !== ground) { scene.remove(h.object); blocks.splice(blocks.indexOf(h.object), 1); } return; }
+          if (del) { if (h.object !== ground) { const q = h.object.position; Net.blk({a: 'd', x: q.x, y: q.y, z: q.z}); scene.remove(h.object); blocks.splice(blocks.indexOf(h.object), 1); } return; }
           const p = new THREE.Vector3();
           if (h.object === ground) p.set(Math.floor(h.point.x) + .5, .5, Math.floor(h.point.z) + .5); else p.copy(h.object.position).add(h.face.normal);
           if (blocks.some(b => b.position.equals(p))) return;
           if (Math.abs(p.x - player.position.x) < 1 && Math.abs(p.z - player.position.z) < 1 && p.y < 1.5) return;
-          if (g.genre === 'studio' && blocks.length >= 800) return; Sfx.play('click'); addBlock(p.x, p.y, p.z, CS.indexOf(color));
+          if (g.genre === 'studio' && blocks.length >= 800) return; Sfx.play('click'); addBlock(p.x, p.y, p.z, CS.indexOf(color)); Net.blk({a: 'p', x: p.x, y: p.y, z: p.z, c: CS.indexOf(color)});
         }};
     },
     shooter(g) {
@@ -623,7 +716,7 @@ const Game = (() => {
         }};
     }
   };
-  const mode_ui = {swatch() {}, toggle() {}};
+  const mode_ui = {swatch() {}, toggle() {}, remote() {}};
 
   function init() {
     renderer = new THREE.WebGLRenderer({canvas: $('canvas'), antialias: true});
@@ -655,6 +748,11 @@ const Game = (() => {
   function loop() {
     raf = requestAnimationFrame(loop); const dt = Math.min(clock.getDelta(), .05);
     mode.update(dt); if (gen !== 'obby' && gen !== 'custom') hop(dt); const p = player.position, d = cam.dist, fp = d < 1.5; player.visible = !fp;
+    Net.pos(p.x, p.y, p.z, player.rotation.y);
+    for (const r of remotes.values()) {                                  // smooth other players' movement
+      const moved = r.g.position.distanceTo(r.t); r.g.position.lerp(r.t, .25); r.g.rotation.y = r.r;
+      const L2 = r.g.userData.limbs, w = moved > .02 ? Math.sin(performance.now() / 120) * .7 : 0; if (L2) { L2[0].rotation.x = w; L2[1].rotation.x = -w; L2[2].rotation.x = -w; L2[3].rotation.x = w; }
+    }
     const L = player.userData.limbs, sw = player.userData.moving ? Math.sin(performance.now() / 120) * .7 : 0;
     if (L) { L[0].rotation.x = sw; L[1].rotation.x = -sw; L[2].rotation.x = -sw; L[3].rotation.x = sw; }
     const sn = Math.sin(cam.yaw), cs = Math.cos(cam.yaw);
@@ -663,7 +761,7 @@ const Game = (() => {
     renderer.render(scene, camera);
   }
   function start(g) {
-    if (!ready) init(); cancelAnimationFrame(raf); cam.yaw = 0; cam.dist = 9; gen = g.genre; cur = g; hvy = 0; Menu.enter(g);
+    if (!ready) init(); cancelAnimationFrame(raf); cam.yaw = 0; cam.dist = 9; gen = g.genre; cur = g; hvy = 0; Net.leave(); remotes.clear(); Menu.enter(g);
     scene = new THREE.Scene(); scene.background = new THREE.Color(0x9ad7ff);
     scene.add(new THREE.HemisphereLight(0xffffff, 0x667788, .9)); const sun = new THREE.DirectionalLight(0xffffff, .6); sun.position.set(10, 20, 8); sun.castShadow = true; Object.assign(sun.shadow.camera, {left:-26, right:26, top:26, bottom:-26, far:60}); sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
     player = makePlayer(); player.position.set(0, .6, 0); scene.add(player);
@@ -671,14 +769,14 @@ const Game = (() => {
       ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), mat(0x7ec850)); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground); if (['builder', 'shooter', 'adventure'].includes(g.genre) === false) {} else if (g.genre !== 'adventure') scenery(34, 5, 5);
       const gr = new THREE.GridHelper(40, 40, 0x2f6b2f, 0x2f6b2f); gr.position.y = .01; scene.add(gr);
     }
-    mode = modes[g.genre](g); $('game').dataset.g = g.genre; $('g-title').textContent = g.title || 'RoBlocks Studio';
+    mode = modes[g.genre](g); netJoin(g); $('game').dataset.g = g.genre; $('g-title').textContent = g.title || 'RoBlocks Studio';
     camera.position.set(0, 9, 9); $('game').classList.add('open'); document.body.classList.add('playing'); resize(); clock.start(); loop();
   }
   function stop() {
     cancelAnimationFrame(raf); $('game').classList.remove('open'); document.body.classList.remove('playing'); pad.x = pad.z = 0; $('knob').style.transform = '';
-    Menu.leave(); if (cur && cur.save) { cur.save(); saveDraft(); } if (location.hash === '#/studio') render();
+    Net.leave(); remotes.clear(); Menu.leave(); if (cur && cur.save) { cur.save(); saveDraft(); } if (location.hash === '#/studio') render();
   }
-  return {start, stop, makePlayer};
+  return {start, stop, makePlayer, peerNames: () => [...remotes.values()].map(r => r.name)};
 })();
 
 /* ===== 3D avatar preview on the Avatar page (drag to spin) ===== */
@@ -828,15 +926,19 @@ addEventListener('storage', e => { if (e.key === 'rb_users') refreshIdle(); });
 
 /* ===== in-game menu: players list, chat, sound, leave ===== */
 const Menu = (() => {
-  let g = null, open = null, last = 0, timer;
+  let g = null, open = null, last = 0, timer, reported = new Set();
   const icon = {on: '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg>', off: '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>'};
   const setIcon = () => { $('gm-snd').innerHTML = Sfx.muted ? icon.off : icon.on; };
   const players = () => { const u = me(); return [u, ...Object.values(getUsers()).filter(a => a.inGame === g.id && a.name !== u?.name && Date.now() - (a.lastSeen || 0) < PRESENCE_MS)].filter(Boolean); };
   const draw = () => {
-    if (open === 'players') { const l = players(); $('p-players').innerHTML = `<h3>Players in game (${l.length})</h3><ul>${l.map(p => `<li>${who(p.name)}${p.name === me()?.name ? ' <small>(you)</small>' : ''}</li>`).join('')}</ul>`; }
+    if (open === 'players') {
+      const online = Net.status === 'online', me0 = me()?.name, l = online ? [{name: me0, self: true}, ...Game.peerNames().map(n => ({name: n}))] : players().map(p => ({name: p.name, self: p.name === me0}));
+      const st = online ? 'online' : Net.status === 'connecting' ? 'connecting…' : 'solo, server not reachable';
+      $('p-players').innerHTML = `<h3>Players in game (${l.length})</h3><p style="margin:0 0 8px;color:#aaa;font-size:12px">${st}</p><ul>${l.map(p => `<li>${p.self ? who(p.name) + ' <small>(you)</small>' : esc(p.name)}</li>`).join('')}</ul>`;
+    }
     if (open === 'chat') {
       const m = LS.get('rb_chat', {})[g.id] || [], box = $('chat-log'), atEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 8;
-      box.innerHTML = m.map(x => `<div><b>${who(x.n)}</b> ${esc(x.t)}</div>`).join('') || '<p style="margin:0;color:#aaa">No messages yet. Say hi!</p>';
+      box.innerHTML = m.map((x, i) => `<div><b>${x.r ? esc(x.n) : who(x.n)}</b> ${esc(censor(x.t))}${x.n === me()?.name ? '' : ` <button class="rep" data-rep="${i}"${reported.has(x.at) ? ' disabled' : ''}>${reported.has(x.at) ? '✓ reported' : '⚑ report'}</button>`}</div>`).join('') || '<p style="margin:0;color:#aaa">No messages yet. Say hi!</p>';
       if (atEnd) box.scrollTop = box.scrollHeight;
     }
   };
@@ -847,12 +949,20 @@ const Menu = (() => {
   $('lv-stay').onclick = () => $('leave').close();
   $('gm-list').onclick = () => toggle('players'); $('gm-chat').onclick = () => toggle('chat');
   $('gm-snd').onclick = () => { Sfx.toggle(); setIcon(); };
+  $('chat-log').addEventListener('click', e => {                 // report a message: goes to the official RoBlocks account
+    const b = e.target.closest('[data-rep]'), u = me(); if (!b || !u) return;
+    const m = (LS.get('rb_chat', {})[g.id] || [])[+b.dataset.rep]; if (!m) return;
+    const all = LS.get('rb_reports', []); all.push({id: Date.now() + '-' + all.length, by: u.name, against: m.n, text: m.t, game: g.title || g.id, at: Date.now(), open: true});
+    LS.set('rb_reports', all.slice(-200)); reported.add(m.at); b.textContent = '✓ reported'; b.disabled = true;
+  });
   $('chat-form').addEventListener('submit', e => {
-    e.preventDefault(); const t = $('chat-in').value.trim().slice(0, 120), u = me(); if (!t || !u || Date.now() - last < 1000) return; last = Date.now();
-    const all = LS.get('rb_chat', {}); all[g.id] = [...(all[g.id] || []), {n: u.name, t, at: Date.now()}].slice(-50); LS.set('rb_chat', all); $('chat-in').value = ''; draw();
+    e.preventDefault(); const t = censor($('chat-in').value.trim().slice(0, 120)), u = me(); if (!t || !u || Date.now() - last < 1000) return;
+    if ((LS.get('rb_mutedusers', {})[lc(u.name)] || 0) > Date.now()) { $('chat-in').value = ''; $('chat-in').placeholder = 'You are muted for a while'; return; } last = Date.now();
+    const all = LS.get('rb_chat', {}); all[g.id] = [...(all[g.id] || []), {n: u.name, t, at: Date.now()}].slice(-50); LS.set('rb_chat', all); $('chat-in').value = ''; draw(); Net.chat(u.name, t);
   });
   return {
     enter(game) { g = game; open = null; $('p-players').hidden = $('p-chat').hidden = true; $('gm-img').src = $('logo').src; setIcon(); setPresence(game.id); clearInterval(timer); timer = setInterval(draw, 2000); },
+    remoteChat(m) { const all = LS.get('rb_chat', {}); all[g.id] = [...(all[g.id] || []), {n: m.n, t: censor(m.t), r: 1, at: Date.now()}].slice(-50); LS.set('rb_chat', all); draw(); },
     leave() { clearInterval(timer); if ($('leave').open) $('leave').close(); open = null; $('p-players').hidden = $('p-chat').hidden = true; setPresence(null); }
   };
 })();
@@ -876,6 +986,13 @@ document.addEventListener('click', e => {
   if (e.target.id === 'st-build') Game.start(S);
   if (e.target.id === 'st-test') { const err = checkStudio(); err ? studioMsg(err) : Game.start({...S, genre: 'custom', id: 'test'}); }
   if (e.target.id === 'st-pub') publishStudio();
+});
+
+document.addEventListener('click', e => {                        // RoBlocks account: handle reports
+  const b = e.target.closest('[data-mod]'); if (!b || !me() || !isOwner(me().name)) return;
+  const all = LS.get('rb_reports', []), r = all.find(x => x.id === b.dataset.id); if (!r) return;
+  if (b.dataset.mod === 'mute') { const m = LS.get('rb_mutedusers', {}); m[lc(r.against)] = Date.now() + 864e5; LS.set('rb_mutedusers', m); }
+  r.open = false; LS.set('rb_reports', all); render();
 });
 
 userbar(); render();
