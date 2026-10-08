@@ -88,11 +88,10 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
 #g-stat{position:absolute;top:calc(60px + env(safe-area-inset-top,0px));left:12px;padding:6px 12px;border-radius:8px;background:rgba(20,22,28,.65);color:#fff;font-weight:700}
 .swatches{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;padding:8px;border-radius:12px;background:rgba(20,22,28,.6)}
 .sw{width:32px;height:32px;border-radius:8px;border:2px solid transparent;cursor:pointer}.sw.on{border-color:#fff}
-.pad{display:none;position:absolute;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));grid-template:repeat(3,52px)/repeat(3,52px);gap:4px}
-.pad button,.jump{border:0;border-radius:12px;background:rgba(20,22,28,.6);color:#fff;font-size:20px;touch-action:none}
+.jump{border:0;border-radius:12px;background:rgba(20,22,28,.6);color:#fff;font-size:20px;touch-action:none}
 .jump{display:none;position:absolute;right:16px;bottom:calc(24px + env(safe-area-inset-bottom,0px));width:76px;height:76px;border-radius:50%;font:700 14px var(--font)}
-#game:not([data-g="builder"]) .swatches,#game:not([data-g="builder"]) #g-mode{display:none}
-@media (pointer:coarse){.pad{display:grid}.swatches{left:auto;right:16px;transform:none;flex-direction:column}#game[data-g="obby"] .jump{display:block}}
+#game:not([data-g="builder"]):not([data-g="studio"]) .swatches,#game:not([data-g="builder"]):not([data-g="studio"]) #g-mode{display:none}
+@media (pointer:coarse){.stick,.jump{display:block}.swatches{left:auto;right:16px;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:none;flex-direction:column}}
 .shop{display:grid;grid-template-columns:240px 1fr;gap:24px;align-items:start}
 .stage{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
 .fig{width:100%;max-width:180px;height:auto}
@@ -120,11 +119,27 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
 .badge{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--danger);color:#fff;font-size:12px;line-height:20px;text-align:center;vertical-align:middle}
 .err.ok{color:var(--play)}
 .av3d{width:100%;max-width:200px;aspect-ratio:3/4;touch-action:none;cursor:grab}
+.brand{display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none}.logo{width:32px;height:32px;border-radius:7px;display:block}
+.form section{display:grid;gap:12px}.code{height:190px;padding:10px 12px;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+.stick{display:none;position:absolute;left:20px;bottom:calc(24px + env(safe-area-inset-bottom,0px));width:130px;height:130px;border-radius:50%;background:rgba(20,22,28,.35);border:2px solid rgba(255,255,255,.4);touch-action:none}
+.knob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px;border-radius:50%;background:rgba(255,255,255,.8);pointer-events:none}
+.hud .gmenu{display:flex;align-items:center;gap:8px}
+.hud .gm-logo{width:48px;height:48px;padding:0;border-radius:50%;background:rgba(15,16,19,.85);display:grid;place-items:center}
+.hud .gm-logo img{width:30px;height:30px;border-radius:6px;display:block}
+.hud .gm-pill{display:flex;gap:2px;padding:0 8px;height:48px;align-items:center;border-radius:24px;background:rgba(15,16,19,.85)}
+.hud .gm-pill button{width:42px;height:42px;padding:0;border-radius:50%;background:none;display:grid;place-items:center}
+.gm-pill svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.gpanel{position:absolute;right:12px;top:calc(72px + env(safe-area-inset-top,0px));width:min(320px,calc(100vw - 24px));max-height:52vh;overflow:auto;padding:12px 14px;border-radius:14px;background:rgba(15,16,19,.92);color:#fff}
+.gpanel h3{margin:0 0 8px;font-size:15px}.gpanel ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.chat-log{max-height:30vh;overflow:auto;display:grid;gap:4px;margin-bottom:8px;font-size:14px;word-break:break-word}
+.chat-form{display:flex;gap:6px}.chat-form input{flex:1;min-width:0;height:38px;padding:0 10px;border:0;border-radius:8px;background:#2b2d33;color:#fff;font:inherit}
+.chat-form button{height:38px;padding:0 14px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:600 14px var(--font);cursor:pointer}
 </style>
+<link rel="icon" id="fav">
 </head>
 <body>
 <header class="topbar">
-  <span class="brand">RoBlocks</span>
+  <a class="brand" href="#/home"><img id="logo" class="logo" alt="" src="data:image/png;base64,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">RoBlocks</a>
   <input class="search" id="q" type="search" placeholder="Search games" aria-label="Search games">
   <div class="userbar" id="userbar"></div>
 </header>
@@ -162,23 +177,32 @@ textarea.in{height:84px;padding:10px 12px;resize:vertical}
   <div class="packs" id="packs"><button class="btn" data-n="100">+100 R$</button><button class="btn" data-n="500">+500 R$</button><button class="btn" data-n="1000">+1,000 R$</button></div>
   <small class="muted">Demo mode: test Ro-Bucks are free and no payment is taken.</small><button class="btn-ghost" id="b-x" type="button">Close</button></div></dialog>
 
+<dialog class="dlg" id="leave" aria-label="Leave game"><div class="pad-b"><h2>Leave game?</h2><p class="muted" id="leave-note"></p>
+  <div style="display:flex;gap:10px"><button class="btn-2" id="lv-leave" type="button" style="flex:1;height:48px;font-size:16px">Leave</button><button class="btn-play" id="lv-stay" type="button" style="flex:1;width:auto;height:48px;font-size:17px">Stay</button></div></div></dialog>
+
 <div id="game" role="dialog" aria-label="Game">
   <canvas id="canvas"></canvas>
-  <div class="hud"><span class="hud-title" id="g-title"></span><button id="g-mode" type="button">Mode: Place</button><button id="g-exit" type="button">Exit</button></div>
+  <div class="hud"><span class="hud-title" id="g-title"></span><button id="g-mode" type="button">Mode: Place</button><div class="gmenu"><button class="gm-logo" id="gm-logo" type="button" aria-label="RoBlocks menu: leave or stay"><img id="gm-img" alt=""></button>
+    <div class="gm-pill"><button id="gm-list" type="button" aria-label="Players in game"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <button id="gm-chat" type="button" aria-label="Chat"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1.1-4.3A8 8 0 1121 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></button>
+    <button id="gm-snd" type="button" aria-label="Sound on or off"></button></div></div></div>
+  <div class="gpanel" id="p-players" hidden></div>
+  <div class="gpanel" id="p-chat" hidden><div class="chat-log" id="chat-log"></div><form class="chat-form" id="chat-form"><input id="chat-in" maxlength="120" autocomplete="off" placeholder="Say something..." aria-label="Chat message"><button type="submit">Send</button></form></div>
   <div id="g-stat"></div>
   <div class="swatches" id="swatches"></div>
-  <div class="pad"><span></span><button data-d="0,-1">▲</button><span></span><button data-d="-1,0">◀</button><span></span><button data-d="1,0">▶</button><span></span><button data-d="0,1">▼</button><span></span></div>
+  <div class="stick" id="stick" aria-label="Joystick"><div class="knob" id="knob"></div></div>
   <button class="jump" id="jump" type="button">JUMP</button>
 </div>
 
 <script>
 /* ===== helpers + storage (per-device; see notes on real accounts) ===== */
 const $ = id => document.getElementById(id);
+$('fav').href = $('logo').src;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LS = {get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
             set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }};
 const GRADS = ['linear-gradient(135deg,#6aa8ff,#2f6bff)','linear-gradient(135deg,#ffb56a,#ff6a5c)','linear-gradient(135deg,#7be0a8,#1fa37a)','linear-gradient(135deg,#c79bff,#6a4cff)','linear-gradient(135deg,#ffe27a,#ffa63d)','linear-gradient(135deg,#7adfe8,#2b8fb5)'];
-const GENRES = {builder:'Builder', shooter:'Shooter', obby:'Obby', horror:'Horror', survival:'Survival', adventure:'Adventure'};
+const GENRES = {builder:'Builder', shooter:'Shooter', obby:'Obby', horror:'Horror', survival:'Survival', adventure:'Adventure', custom:'Custom'};
 const mk = (id, title, genre, diff, c, desc, price = 0) => ({id, title, genre, diff, c, desc, price, author:'RoBlocks'});
 const BASE = [
   mk('arena-strike','Arena Strike','shooter',2,1,'Survive waves of enemies. Tap or click to fire.'),
@@ -232,13 +256,44 @@ const figure = o => {
 };
 /* ===== NEWS: add a new post at the TOP of this list whenever you update ===== */
 const POSTS = [
-  {date:'2026-10-06', tag:'Update', title:'Horror, Survival and Adventure + 3D avatars', body:['Three new game types: Horror (dark map, flashlight, 3 keys and a ghost), Survival (hunger, wolves, 90 seconds) and Adventure (collect 5 gems and enter the portal). All can be chosen on the Create page.','Games now have trees, rocks, shadows and animated characters. Pinch to zoom (or use the mouse wheel) to switch between 3rd and 1st person, and drag to look around.','Avatars are now real 3D models with arms, legs and a face. Drag the avatar on the Avatar page to spin it.','Friend requests to a name with no account in this browser are now saved and delivered when that player signs up, instead of saying they do not exist.']},
-  {date:'2026-10-06', tag:'Update', title:'Friends and friend requests', body:['Add friends by display name from the Friends section on Home. They get a request they can accept or decline, and you can remove a friend at any time.','Friends show a green dot when online and a gray dot when offline.']},
-  {date:'2026-10-06', tag:'Update', title:'Starter avatars, hair and the News page', body:['New accounts now start with a default look. Choose a Male or Female look when you sign up, and switch it any time on the Avatar page.','There is a new Hair section with free and paid styles, and the official RoBlocks account now shows an Owner crown.']},
-  {date:'2026-10-06', tag:'Update', title:'Ro-Bucks and the Avatar shop', body:['Dress your character with free and paid clothing. New accounts get 100 Ro-Bucks to start. Creators can now set a price for their games.']},
-  {date:'2026-10-06', tag:'Update', title:'Shooter and Obby games, accounts and Create', body:['Games now come in three types: Builder, Shooter and Obby. Log in or sign up to play, and publish your own game from the Create page.']},
-  {date:'2026-10-06', tag:'Launch', title:'Welcome to RoBlocks', body:['RoBlocks is a browser-based 3D game platform that works on computers, tablets and phones. Pick a game and press Play.']}
+  {date:'2026-10-07', tag:'Update', title:'In-game menu: players, chat and leave', body:['Every game now has a menu in the top right corner. Tap the list button to see how many players are in the game, the chat button to talk to them, and the speaker to mute sound effects.','Tap the RoBlocks logo to open Leave or Stay. Leave takes you back to the dashboard, Stay keeps you in the game.']},
+  {date:'2026-10-07', tag:'Update', title:'RoBlocks Studio, joystick and the official logo', body:['RoBlocks Studio: games are now made in the Studio. Build your world with blocks, write simple code rules, pick sound effects, test it, then publish.','Mobile: the four arrows are replaced with a joystick, and every game now has a Jump button.','The official RoBlocks logo is now in the top bar and used as the site icon. News dates are fixed.']},
+  {date:'2026-10-07', tag:'Update', title:'Horror, Survival and Adventure + 3D avatars', body:['Three new game types: Horror (dark map, flashlight, 3 keys and a ghost), Survival (hunger, wolves, 90 seconds) and Adventure (collect 5 gems and enter the portal). All can be chosen on the Create page.','Games now have trees, rocks, shadows and animated characters. Pinch to zoom (or use the mouse wheel) to switch between 3rd and 1st person, and drag to look around.','Avatars are now real 3D models with arms, legs and a face. Drag the avatar on the Avatar page to spin it.','Friend requests to a name with no account in this browser are now saved and delivered when that player signs up, instead of saying they do not exist.']},
+  {date:'2026-10-07', tag:'Update', title:'Friends and friend requests', body:['Add friends by display name from the Friends section on Home. They get a request they can accept or decline, and you can remove a friend at any time.','Friends show a green dot when online and a gray dot when offline.']},
+  {date:'2026-10-07', tag:'Update', title:'Starter avatars, hair and the News page', body:['New accounts now start with a default look. Choose a Male or Female look when you sign up, and switch it any time on the Avatar page.','There is a new Hair section with free and paid styles, and the official RoBlocks account now shows an Owner crown.']},
+  {date:'2026-10-07', tag:'Update', title:'Ro-Bucks and the Avatar shop', body:['Dress your character with free and paid clothing. New accounts get 100 Ro-Bucks to start. Creators can now set a price for their games.']},
+  {date:'2026-10-07', tag:'Update', title:'Shooter and Obby games, accounts and Create', body:['Games now come in three types: Builder, Shooter and Obby. Log in or sign up to play, and publish your own game from the Create page.']},
+  {date:'2026-10-07', tag:'Launch', title:'Welcome to RoBlocks', body:['RoBlocks is a browser-based 3D game platform that works on computers, tablets and phones. Pick a game and press Play.']}
 ];
+
+/* ===== RoBlocks Studio: sounds, safe script language, draft ===== */
+const CS = [0xe74c3c, 0xf1c40f, 0x2ecc71, 0x3498db, 0x9b59b6, 0xecf0f1];
+const CNAME = ['red', 'yellow', 'green', 'blue', 'purple', 'white'];
+const Sfx = (() => {
+  let ac, muted = LS.get('rb_muted', false); const P = {coin:[[880,880,.07],[1320,1320,.14]], jump:[[300,700,.16,'square']], hit:[[220,60,.25,'sawtooth']], win:[[523,523,.1],[659,659,.1],[784,784,.1],[1047,1047,.25]], lose:[[400,100,.5,'sawtooth']], boom:[[120,30,.5,'sawtooth']], click:[[600,600,.04,'square']]};
+  const play = n => { const seq = P[n]; if (!seq || muted) return; try {
+    ac ||= new (window.AudioContext || window.webkitAudioContext)(); ac.resume?.(); let t = ac.currentTime;
+    for (const [f1, f2, d, ty = 'sine'] of seq) { const o = ac.createOscillator(), g = ac.createGain(); o.type = ty; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + d);
+      g.gain.setValueAtTime(.15, t); g.gain.exponentialRampToValueAtTime(.001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d); t += d; } } catch {} };
+  return {play, names: Object.keys(P), get muted() { return muted; }, toggle() { muted = !muted; LS.set('rb_muted', muted); return muted; }};
+})();
+const ACTS = {score:1, win:1, lose:1, remove:1, sound:1, message:1, teleport:1};
+function parseScript(src) {                      // a tiny rule language. It is never run as JavaScript, so it is safe.
+  const rules = [], errors = [];
+  String(src).split('\n').forEach((raw, i) => {
+    const line = raw.split('#')[0].trim(); if (!line) return;
+    const [lhs, rhs] = line.split('->').map(x => x?.trim()), w = (lhs || '').split(/\s+/), on = w[0] === 'touch' ? w[1] : w[0];
+    if (!rhs || !(on === 'start' || on === 'jump' || (w[0] === 'touch' && CNAME.includes(on)))) return errors.push(`Line ${i + 1}: use "touch <color> -> action", "start -> action" or "jump -> action".`);
+    const acts = rhs.split(';').map(a => a.trim().split(/\s+/)).filter(a => a[0]);
+    const bad = acts.find(a => !ACTS[a[0]] || (a[0] === 'sound' && !Sfx.names.includes(a[1])));
+    if (bad) return errors.push(`Line ${i + 1}: unknown action or sound "${bad.join(' ')}".`);
+    rules.push({on, acts});
+  });
+  return {rules, errors};
+}
+const DEFAULT_SCRIPT = '# One rule per line\nstart -> message Collect the yellow coins and reach green!\ntouch yellow -> score 1; sound coin; remove\ntouch red -> lose; sound hit\ntouch green -> win; sound win\njump -> sound jump';
+const S = Object.assign({title:'', desc:'', price:0, c:0, blocks:[], script:DEFAULT_SCRIPT}, LS.get('rb_draft', {}), {genre:'studio', id:'studio'});
+const saveDraft = () => LS.set('rb_draft', {title:S.title, desc:S.desc, price:S.price, c:S.c, blocks:S.blocks, script:S.script});
 
 /* ===== views ===== */
 const state = {q:'', genre:'all', slot:'skin'};
@@ -270,24 +325,29 @@ const views = {
     return `<h1>News</h1>${POSTS.map(p => `<article class="post"><span class="tag2">${esc(p.tag)}</span><time datetime="${p.date}">${new Date(p.date + 'T00:00').toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'})}</time><h2>${esc(p.title)}</h2>${p.body.map(t => `<p>${esc(t)}</p>`).join('')}</article>`).join('')}`;
   },
   create() {
-    const opts = [['builder','Builder','Players place and remove blocks in a sandbox.'],['shooter','Shooter','Players fight waves of enemies by tapping or clicking to fire.'],['obby','Obby','Players jump across platforms to reach the finish.'],['horror','Horror','Dark map, flashlight, keys to find and a ghost hunting you.'],['survival','Survival','Keep your hunger up, avoid wolves and last 90 seconds.'],['adventure','Adventure','Explore an open world, collect gems and reach the portal.']]
-      .map(([k, n, d], i) => `<label class="opt"><input type="radio" name="genre" value="${k}"${i ? '' : ' checked'}><div><b>${n}</b><span>${d}</span></div></label>`).join('');
-    const cols = GRADS.map((g, i) => `<label style="background:${g}"><input type="radio" name="c" value="${i}"${i ? '' : ' checked'} aria-label="Cover ${i + 1}"></label>`).join('');
-    return `<h1>Create</h1><form class="form" id="create-form">
-      <label class="field">Game title<input class="in" name="title" required maxlength="40" placeholder="My awesome game"></label>
-      <label class="field">Description<textarea class="in" name="desc" maxlength="140" placeholder="What do players do?"></textarea></label>
-      <div class="field">Game type<div class="opts">${opts}</div></div>
-      <label class="field">Difficulty<select class="in" name="diff"><option value="1">Easy</option><option value="2" selected>Medium</option><option value="3">Hard</option></select></label>
-      <label class="field">Price in Ro-Bucks<input class="in" type="number" name="price" min="0" max="500" value="0"><small>0 makes your game free</small></label>
-      <div class="field">Cover color<div class="cols">${cols}</div></div>
-      <div class="err" id="c-err"></div><button class="btn" style="height:46px;font-size:16px" type="submit">Publish game</button>
-      <small style="color:var(--muted)">You need to be logged in to publish. Your game appears in Home and Discover.</small></form>`;
+    return `<h1>Create</h1><div class="post"><h2>Make your game in RoBlocks Studio</h2><p>Build your world with blocks, write simple code rules, add sound effects, test it, then publish.</p><a class="btn" style="display:inline-flex;align-items:center;height:42px" href="#/studio">Open RoBlocks Studio</a></div>`;
+  },
+  studio() {
+    const cols = GRADS.map((g, i) => `<label style="background:${g}"><input type="radio" name="sc" data-s="c" value="${i}"${+S.c === i ? ' checked' : ''} aria-label="Cover ${i + 1}"></label>`).join('');
+    const snd = Sfx.names.map(n => `<button class="chip" type="button" data-sfx="${n}">▶ ${n}</button>`).join('');
+    return `<h1>RoBlocks Studio</h1><div class="form">
+      <section><h2>1. Details</h2>
+        <label class="field">Game title<input class="in" data-s="title" maxlength="40" value="${esc(S.title)}" placeholder="My awesome game"></label>
+        <label class="field">Description<textarea class="in" data-s="desc" maxlength="140" placeholder="What do players do?">${esc(S.desc)}</textarea></label>
+        <label class="field">Price in Ro-Bucks<input class="in" type="number" data-s="price" min="0" max="500" value="${esc(S.price)}"><small>0 makes your game free</small></label>
+        <div class="field">Cover color<div class="cols">${cols}</div></div></section>
+      <section><h2>2. Build</h2><p class="muted" style="margin:0">${S.blocks.length} blocks placed. Colors matter: your code can react to them.</p><button class="btn" id="st-build" type="button" style="height:42px">Open Block Builder</button></section>
+      <section><h2>3. Code</h2><textarea class="in code" data-s="script" maxlength="2000" spellcheck="false">${esc(S.script)}</textarea>
+        <small class="muted"><b>Triggers:</b> touch red|yellow|green|blue|purple|white, start, jump. <b>Actions</b> (separate with ;): score 1, win, lose, remove, message hello, teleport 0 3 0, sound ${Sfx.names.join('|')}.</small></section>
+      <section><h2>4. Sound effects</h2><div class="chips" style="margin:0">${snd}</div></section>
+      <section><h2>5. Test and publish</h2><div class="err" id="st-msg" role="alert"></div>
+        <div style="display:flex;gap:10px"><button class="btn-2" id="st-test" type="button" style="height:44px">Test play</button><button class="btn" id="st-pub" type="button" style="height:44px">Publish game</button></div></section></div>`;
   }
 };
 function render() {
   const r = (location.hash.split('/')[1] || 'home'), name = views[r] ? r : 'home';
   $('view').innerHTML = views[name]();
-  document.querySelectorAll('.nav a').forEach(a => a.dataset.r === name ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+  document.querySelectorAll('.nav a').forEach(a => a.dataset.r === (name === 'studio' ? 'create' : name) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   scrollTo(0, 0);
   if (name === 'avatar') AvatarView.mount();
 }
@@ -364,7 +424,7 @@ document.addEventListener('submit', e => {
 /* ===== 3D game: one scaffold, a mode per genre ===== */
 const Game = (() => {
   const HALF = 19.5, keys = {}, pad = {x:0, z:0};
-  let renderer, scene, camera, player, ground, mode, raf, ready = false, jumpReq = false;
+  let renderer, scene, camera, player, ground, mode, raf, ready = false, jumpReq = false, gen, cur, hvy = 0;
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2(), clock = new THREE.Clock();
   const mat = c => new THREE.MeshLambertMaterial({color:c});
   const box = (w, h, d, c) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.castShadow = m.receiveShadow = true; return m; };
@@ -373,10 +433,14 @@ const Game = (() => {
   function walk(dt, speed, lim = HALF) {
     const ix = pad.x + (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
     const iz = pad.z + (keys.KeyS || keys.ArrowDown ? 1 : 0) - (keys.KeyW || keys.ArrowUp ? 1 : 0);
-    const l = Math.hypot(ix, iz); player.userData.moving = l > 0; if (!l) return;
-    const sn = Math.sin(cam.yaw), cs = Math.cos(cam.yaw), x = (ix * cs + iz * sn) / l, z = (-ix * sn + iz * cs) / l, p = player.position;
-    p.x = THREE.MathUtils.clamp(p.x + x * speed * dt, -lim, lim); p.z = THREE.MathUtils.clamp(p.z + z * speed * dt, -lim, lim);
+    const l = Math.hypot(ix, iz); player.userData.moving = l > .12; if (l <= .12) return;
+    const m = Math.min(1, l), sn = Math.sin(cam.yaw), cs = Math.cos(cam.yaw), x = (ix * cs + iz * sn) / l, z = (-ix * sn + iz * cs) / l, p = player.position;
+    p.x = THREE.MathUtils.clamp(p.x + x * speed * m * dt, -lim, lim); p.z = THREE.MathUtils.clamp(p.z + z * speed * m * dt, -lim, lim);
     player.rotation.y = Math.atan2(x, z);
+  }
+  function hop(dt) {                             // jump for modes without their own physics
+    const p = player.position; if ((keys.Space || jumpReq) && p.y <= .61) { hvy = 7; Sfx.play('jump'); } jumpReq = false;
+    hvy -= 22 * dt; p.y = Math.max(.6, p.y + hvy * dt); if (p.y <= .6) hvy = 0;
   }
   const stat = t => $('g-stat').textContent = t;
   function makePlayer() {                        // real 3D character: legs, arms, torso, head, face, hair, hat
@@ -408,7 +472,7 @@ const Game = (() => {
 
 
   const modes = {
-    builder() {
+    builder(g) {
       const blocks = []; let color = 0x3498db, del = false;
       const cs = [0xe74c3c, 0xf1c40f, 0x2ecc71, 0x3498db, 0x9b59b6, 0xecf0f1];
       $('swatches').innerHTML = cs.map(c => `<button class="sw${c === color ? ' on' : ''}" data-c="${c}" style="background:#${c.toString(16).padStart(6, '0')}" aria-label="Color"></button>`).join('');
@@ -416,6 +480,8 @@ const Game = (() => {
       mode_ui.swatch = e => { const s = e.target.closest('.sw'); if (!s) return; color = +s.dataset.c; document.querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x === s)); };
       mode_ui.toggle = () => { del = !del; $('g-mode').textContent = 'Mode: ' + (del ? 'Remove' : 'Place'); $('g-mode').classList.toggle('on', del); };
       stat('Tap the ground to build');
+      const addBlock = (x, y, z, i) => { const b = box(1, 1, 1, CS[i] ?? CS[3]); b.position.set(x, y, z); b.userData.ci = i; scene.add(b); blocks.push(b); };
+      if (g.genre === 'studio') { (g.blocks || []).forEach(a => addBlock(...a)); g.save = () => { g.blocks = blocks.map(b => [b.position.x, b.position.y, b.position.z, b.userData.ci]); }; stat('Build your world · tap to place blocks'); }
       return {
         update: dt => walk(dt, 6),
         tap(e) {
@@ -425,7 +491,7 @@ const Game = (() => {
           if (h.object === ground) p.set(Math.floor(h.point.x) + .5, .5, Math.floor(h.point.z) + .5); else p.copy(h.object.position).add(h.face.normal);
           if (blocks.some(b => b.position.equals(p))) return;
           if (Math.abs(p.x - player.position.x) < 1 && Math.abs(p.z - player.position.z) < 1 && p.y < 1.5) return;
-          const b = box(1, 1, 1, color); b.position.copy(p); scene.add(b); blocks.push(b);
+          if (g.genre === 'studio' && blocks.length >= 800) return; Sfx.play('click'); addBlock(p.x, p.y, p.z, CS.indexOf(color));
         }};
     },
     shooter(g) {
@@ -478,6 +544,31 @@ const Game = (() => {
           if (p.y < -12) { p.set(0, .6, 0); vy = 0; }
           if (!won) { t += dt; if (on && Math.hypot(p.x - goal.x, p.z - goal.z) < goal.hw) won = true; }
           stat(won ? `You win! ${t.toFixed(1)}s` : `Time ${t.toFixed(1)}s`);
+        }};
+    },
+    studio(g) { return modes.builder(g); },
+    custom(g) {                                  // plays a game made in RoBlocks Studio
+      const {rules} = parseScript(g.script || ''), sol = [], P = player.position; let vy = 0, score = 0, won = false, msg = '', msgT = 0;
+      (g.blocks || []).forEach(([x, y, z, i]) => { const m = box(1, 1, 1, CS[i] ?? CS[3]); m.position.set(x, y, z); scene.add(m); sol.push({m, x, y, z, ci: i, on: false}); });
+      P.set(0, 3, 0);
+      const run = (acts, s) => { for (const [a, ...r] of acts) {
+        if (a === 'score') score += +r[0] || 0; else if (a === 'win') won = true; else if (a === 'lose') { P.set(0, 3, 0); vy = 0; }
+        else if (a === 'remove' && s) { scene.remove(s.m); s.dead = true; } else if (a === 'sound') Sfx.play(r[0]);
+        else if (a === 'message') { msg = r.join(' ').slice(0, 60); msgT = 4; } else if (a === 'teleport') { P.set(+r[0] || 0, (+r[1] || 0) + .6, +r[2] || 0); vy = 0; } } };
+      const fire = (on, s) => rules.filter(r => r.on === on).forEach(r => run(r.acts, s));
+      fire('start');
+      return {
+        tap() { if (won) start(g); },
+        update(dt) {
+          if (won) return; msgT -= dt; const px = P.x, pz = P.z; walk(dt, 6, 40);
+          for (const s of sol) if (!s.dead && Math.abs(P.x - s.x) < .75 && Math.abs(P.z - s.z) < .75 && P.y - .6 < s.y + .4 && P.y + .6 > s.y - .5) { P.x = px; P.z = pz; break; }
+          vy -= 22 * dt; P.y += vy * dt; let on = false;
+          if (P.y <= .6) { P.y = .6; vy = 0; on = true; }
+          for (const s of sol) if (!s.dead && Math.abs(P.x - s.x) < .75 && Math.abs(P.z - s.z) < .75) { const feet = P.y - .6, top = s.y + .5; if (vy <= 0 && feet <= top + .05 && feet >= top - .6) { P.y = top + .6; vy = 0; on = true; } }
+          if ((keys.Space || jumpReq) && on) { vy = 9; fire('jump'); } jumpReq = false;
+          if (P.y < -15) { P.set(0, 3, 0); vy = 0; }
+          for (const s of sol) { if (s.dead) continue; const hit = Math.abs(P.x - s.x) < 1 && Math.abs(P.z - s.z) < 1 && Math.abs(P.y - s.y) < 1.4; if (hit && !s.on) fire(CNAME[s.ci], s); s.on = hit; }
+          stat(won ? `You win! Score ${score} · tap to play again` : `Score ${score}${msgT > 0 ? ' · ' + msg : ''}`);
         }};
     },
     horror(g) {
@@ -538,12 +629,13 @@ const Game = (() => {
     renderer = new THREE.WebGLRenderer({canvas: $('canvas'), antialias: true});
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true;
     camera = new THREE.PerspectiveCamera(55, 1, .1, 200);
-    addEventListener('keydown', e => keys[e.code] = true); addEventListener('keyup', e => keys[e.code] = false);
-    document.querySelectorAll('.pad button').forEach(b => {
-      const [x, z] = b.dataset.d.split(',').map(Number);
-      b.addEventListener('pointerdown', e => { e.preventDefault(); pad.x = x; pad.z = z; });
-      ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => b.addEventListener(t, () => pad.x = pad.z = 0));
-    });
+    addEventListener('keydown', e => { if (/INPUT|TEXTAREA/.test(e.target.tagName)) return; keys[e.code] = true; }); addEventListener('keyup', e => keys[e.code] = false);
+    const st = $('stick'), kn = $('knob'); let sid = null;       // on-screen joystick
+    const mv = e => { const r = st.getBoundingClientRect(), R = r.width / 2; let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R); const l = Math.hypot(dx, dy) || 1, k = Math.min(l, R) / l; dx *= k; dy *= k; kn.style.transform = `translate(${dx}px,${dy}px)`; pad.x = dx / R; pad.z = dy / R; };
+    st.addEventListener('pointerdown', e => { e.preventDefault(); sid = e.pointerId; st.setPointerCapture(sid); mv(e); });
+    st.addEventListener('pointermove', e => { if (e.pointerId === sid) mv(e); });
+    const rel = e => { if (e.pointerId !== sid) return; sid = null; kn.style.transform = ''; pad.x = pad.z = 0; };
+    st.addEventListener('pointerup', rel); st.addEventListener('pointercancel', rel);
     const cv = $('canvas'), ptrs = new Map(); let pinch = 0, moved = 0;
     const span = () => { const [a, b] = [...ptrs.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
     cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x: e.clientX, y: e.clientY}); moved = 0; if (ptrs.size === 2) pinch = span(); });
@@ -557,12 +649,12 @@ const Game = (() => {
     cv.addEventListener('wheel', e => { e.preventDefault(); cam.dist = THREE.MathUtils.clamp(cam.dist + e.deltaY * .01, 0, 16); }, {passive: false});
     $('jump').addEventListener('pointerdown', e => { e.preventDefault(); jumpReq = true; });
     $('swatches').onclick = e => mode_ui.swatch(e); $('g-mode').onclick = () => mode_ui.toggle();
-    $('g-exit').onclick = stop; addEventListener('resize', resize); ready = true;
+    addEventListener('resize', resize); ready = true;
   }
   function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
   function loop() {
     raf = requestAnimationFrame(loop); const dt = Math.min(clock.getDelta(), .05);
-    mode.update(dt); const p = player.position, d = cam.dist, fp = d < 1.5; player.visible = !fp;
+    mode.update(dt); if (gen !== 'obby' && gen !== 'custom') hop(dt); const p = player.position, d = cam.dist, fp = d < 1.5; player.visible = !fp;
     const L = player.userData.limbs, sw = player.userData.moving ? Math.sin(performance.now() / 120) * .7 : 0;
     if (L) { L[0].rotation.x = sw; L[1].rotation.x = -sw; L[2].rotation.x = -sw; L[3].rotation.x = sw; }
     const sn = Math.sin(cam.yaw), cs = Math.cos(cam.yaw);
@@ -571,7 +663,7 @@ const Game = (() => {
     renderer.render(scene, camera);
   }
   function start(g) {
-    if (!ready) init(); cancelAnimationFrame(raf); cam.yaw = 0; cam.dist = 9;
+    if (!ready) init(); cancelAnimationFrame(raf); cam.yaw = 0; cam.dist = 9; gen = g.genre; cur = g; hvy = 0; Menu.enter(g);
     scene = new THREE.Scene(); scene.background = new THREE.Color(0x9ad7ff);
     scene.add(new THREE.HemisphereLight(0xffffff, 0x667788, .9)); const sun = new THREE.DirectionalLight(0xffffff, .6); sun.position.set(10, 20, 8); sun.castShadow = true; Object.assign(sun.shadow.camera, {left:-26, right:26, top:26, bottom:-26, far:60}); sun.shadow.mapSize.set(1024, 1024); scene.add(sun);
     player = makePlayer(); player.position.set(0, .6, 0); scene.add(player);
@@ -579,10 +671,13 @@ const Game = (() => {
       ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), mat(0x7ec850)); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground); if (['builder', 'shooter', 'adventure'].includes(g.genre) === false) {} else if (g.genre !== 'adventure') scenery(34, 5, 5);
       const gr = new THREE.GridHelper(40, 40, 0x2f6b2f, 0x2f6b2f); gr.position.y = .01; scene.add(gr);
     }
-    mode = modes[g.genre](g); $('game').dataset.g = g.genre; $('g-title').textContent = g.title;
+    mode = modes[g.genre](g); $('game').dataset.g = g.genre; $('g-title').textContent = g.title || 'RoBlocks Studio';
     camera.position.set(0, 9, 9); $('game').classList.add('open'); document.body.classList.add('playing'); resize(); clock.start(); loop();
   }
-  function stop() { cancelAnimationFrame(raf); $('game').classList.remove('open'); document.body.classList.remove('playing'); pad.x = pad.z = 0; }
+  function stop() {
+    cancelAnimationFrame(raf); $('game').classList.remove('open'); document.body.classList.remove('playing'); pad.x = pad.z = 0; $('knob').style.transform = '';
+    Menu.leave(); if (cur && cur.save) { cur.save(); saveDraft(); } if (location.hash === '#/studio') render();
+  }
   return {start, stop, makePlayer};
 })();
 
@@ -730,6 +825,58 @@ function deliverOutbox() {                       // send saved requests once the
 function beat() { deliverOutbox(); const u = me(); if (u) { u.lastSeen = Date.now(); saveUser(u); } refreshIdle(); }
 beat(); setInterval(beat, 30000);
 addEventListener('storage', e => { if (e.key === 'rb_users') refreshIdle(); });
+
+/* ===== in-game menu: players list, chat, sound, leave ===== */
+const Menu = (() => {
+  let g = null, open = null, last = 0, timer;
+  const icon = {on: '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg>', off: '<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>'};
+  const setIcon = () => { $('gm-snd').innerHTML = Sfx.muted ? icon.off : icon.on; };
+  const players = () => { const u = me(); return [u, ...Object.values(getUsers()).filter(a => a.inGame === g.id && a.name !== u?.name && Date.now() - (a.lastSeen || 0) < PRESENCE_MS)].filter(Boolean); };
+  const draw = () => {
+    if (open === 'players') { const l = players(); $('p-players').innerHTML = `<h3>Players in game (${l.length})</h3><ul>${l.map(p => `<li>${who(p.name)}${p.name === me()?.name ? ' <small>(you)</small>' : ''}</li>`).join('')}</ul>`; }
+    if (open === 'chat') {
+      const m = LS.get('rb_chat', {})[g.id] || [], box = $('chat-log'), atEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 8;
+      box.innerHTML = m.map(x => `<div><b>${who(x.n)}</b> ${esc(x.t)}</div>`).join('') || '<p style="margin:0;color:#aaa">No messages yet. Say hi!</p>';
+      if (atEnd) box.scrollTop = box.scrollHeight;
+    }
+  };
+  const toggle = w => { open = open === w ? null : w; $('p-players').hidden = open !== 'players'; $('p-chat').hidden = open !== 'chat'; draw(); if (open === 'chat') { const b = $('chat-log'); b.scrollTop = b.scrollHeight; } };
+  const setPresence = id => { const u = me(); if (u) { u.inGame = id; u.lastSeen = Date.now(); saveUser(u); } };
+  $('gm-logo').onclick = () => { $('leave-note').textContent = g?.genre === 'studio' ? 'Your blocks will be saved.' : 'Your progress in this round will be lost.'; $('leave').showModal(); };
+  $('lv-leave').onclick = () => { $('leave').close(); Game.stop(); };
+  $('lv-stay').onclick = () => $('leave').close();
+  $('gm-list').onclick = () => toggle('players'); $('gm-chat').onclick = () => toggle('chat');
+  $('gm-snd').onclick = () => { Sfx.toggle(); setIcon(); };
+  $('chat-form').addEventListener('submit', e => {
+    e.preventDefault(); const t = $('chat-in').value.trim().slice(0, 120), u = me(); if (!t || !u || Date.now() - last < 1000) return; last = Date.now();
+    const all = LS.get('rb_chat', {}); all[g.id] = [...(all[g.id] || []), {n: u.name, t, at: Date.now()}].slice(-50); LS.set('rb_chat', all); $('chat-in').value = ''; draw();
+  });
+  return {
+    enter(game) { g = game; open = null; $('p-players').hidden = $('p-chat').hidden = true; $('gm-img').src = $('logo').src; setIcon(); setPresence(game.id); clearInterval(timer); timer = setInterval(draw, 2000); },
+    leave() { clearInterval(timer); if ($('leave').open) $('leave').close(); open = null; $('p-players').hidden = $('p-chat').hidden = true; setPresence(null); }
+  };
+})();
+
+/* ===== RoBlocks Studio actions ===== */
+const studioMsg = t => { const el = $('st-msg'); if (el) el.textContent = t; };
+function checkStudio() { if (!S.blocks.length) return 'Add some blocks in the Block Builder first.'; return parseScript(S.script).errors[0] || ''; }
+function publishStudio() {
+  const err = !S.title.trim() ? 'Give your game a title.' : checkStudio(); if (err) return studioMsg(err);
+  requireAuth(() => {
+    const g = {id: S.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24) + '-' + Date.now().toString(36), title: S.title.trim().slice(0, 40), genre: 'custom', diff: 2, c: Math.min(5, Math.max(0, +S.c || 0)),
+      desc: (S.desc || '').trim().slice(0, 140), price: Math.min(500, Math.max(0, Math.floor(+S.price) || 0)), author: me().name, blocks: S.blocks, script: String(S.script).slice(0, 2000)};
+    LS.set('rb_games', [g, ...userGames()]);
+    Object.assign(S, {title: '', desc: '', price: 0, c: 0, blocks: [], script: DEFAULT_SCRIPT}); saveDraft();
+    location.hash = '#/home'; render(); openGame(g);
+  });
+}
+document.addEventListener('input', e => { const k = e.target.dataset?.s; if (k) { S[k] = e.target.value; saveDraft(); } });
+document.addEventListener('click', e => {
+  const sf = e.target.closest('[data-sfx]'); if (sf) Sfx.play(sf.dataset.sfx);
+  if (e.target.id === 'st-build') Game.start(S);
+  if (e.target.id === 'st-test') { const err = checkStudio(); err ? studioMsg(err) : Game.start({...S, genre: 'custom', id: 'test'}); }
+  if (e.target.id === 'st-pub') publishStudio();
+});
 
 userbar(); render();
 </script>
