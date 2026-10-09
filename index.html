@@ -142,6 +142,10 @@ body.touch .stick,body.touch .jump{display:block}
 body.touch .swatches{left:auto;right:16px;bottom:calc(120px + env(safe-area-inset-bottom,0px));transform:none;flex-direction:column}
 .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.foot a{color:inherit}
 .legal h2{font-size:17px;margin:18px 0 6px}.legal p{margin:0 0 8px;max-width:70ch}
+.hpbar{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:12px;z-index:5;display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:12px;background:rgba(15,16,19,.82);color:#fff;font-weight:700}
+.hpbar[hidden]{display:none}.hp-track{width:120px;height:12px;border-radius:6px;background:rgba(255,255,255,.2);overflow:hidden}
+.hp-fill{height:100%;width:100%;background:#2ecc71;border-radius:6px;transition:width .15s,background .15s}
+#game.hasbar .hud-title{display:none}#game.hasbar #g-stat{top:calc(64px + env(safe-area-inset-top,0px))}
 </style>
 <link rel="icon" id="fav">
 </head>
@@ -199,6 +203,7 @@ body.touch .swatches{left:auto;right:16px;bottom:calc(120px + env(safe-area-inse
     <button id="gm-snd" type="button" aria-label="Sound on or off"></button></div></div>
   <div class="gpanel" id="p-players" hidden></div>
   <div class="gpanel" id="p-chat" hidden><div class="chat-log" id="chat-log"></div><form class="chat-form" id="chat-form"><input id="chat-in" maxlength="120" autocomplete="off" placeholder="Say something..." aria-label="Chat message"><button type="submit">Send</button></form></div>
+  <div class="hpbar" id="hpbar" hidden aria-label="Health"><span aria-hidden="true">❤️</span><div class="hp-track"><div class="hp-fill" id="hp-fill"></div></div><b id="hp-num">100</b></div>
   <div id="g-stat"></div>
   <div class="swatches" id="swatches"></div>
   <div class="stick" id="stick" aria-label="Joystick"><div class="knob" id="knob"></div></div>
@@ -288,6 +293,7 @@ const figure = o => {
 };
 /* ===== NEWS: add a new post at the TOP of this list whenever you update ===== */
 const POSTS = [
+  {date:'2026-10-08', tag:'Update', title:'Health bars and a dying sound', body:['Survival and Horror games now show a health bar in the top left corner that changes from green to red as you get hurt.','In Horror, the ghost now drains your health instead of catching you instantly, so you can run away. When your health reaches zero you hear a dying sound effect.']},
   {date:'2026-10-08', tag:'Update', title:'Settings, Terms of Service and Copyright policy', body:['New Settings page (tap the gear in the top bar): change your display name, password and email, switch between light and dark mode, turn sound effects on or off, download your data, or delete your account.','You can now read the Terms of Service, Copyright policy and Privacy notice from the links at the bottom of every page and when you sign up.']},
   {date:'2026-10-08', tag:'Update', title:'Gems, a huge Studio world and a fixed game menu', body:['Ro-Bucks are now called Gems everywhere: the wallet, shop prices and game prices.','The building world in RoBlocks Studio is now 240 by 240, about 25 times bigger, with faster movement and room for up to 2,000 blocks. Games made in the Studio play on the same big map.','The menu in the top right corner of every game (logo, players, chat and sound) is rebuilt so it always shows on top.']},
   {date:'2026-10-08', tag:'Update', title:'30 new avatar items', body:['New avatars: Peach, Olive, Brown, Bubblegum, Alien, Purple Monster, Ice, Lava, Skeleton and Shadow.','New hair: long and spiky styles in black, brown, blue, green, white and pink. Plus new shirts, pants and hats, with free and paid options. Visit the Avatar page to try them on.']},
@@ -307,7 +313,7 @@ const POSTS = [
 const CS = [0xe74c3c, 0xf1c40f, 0x2ecc71, 0x3498db, 0x9b59b6, 0xecf0f1];
 const CNAME = ['red', 'yellow', 'green', 'blue', 'purple', 'white'];
 const Sfx = (() => {
-  let ac, muted = LS.get('rb_muted', false); const P = {coin:[[880,880,.07],[1320,1320,.14]], jump:[[300,700,.16,'square']], hit:[[220,60,.25,'sawtooth']], win:[[523,523,.1],[659,659,.1],[784,784,.1],[1047,1047,.25]], lose:[[400,100,.5,'sawtooth']], boom:[[120,30,.5,'sawtooth']], click:[[600,600,.04,'square']]};
+  let ac, muted = LS.get('rb_muted', false); const P = {coin:[[880,880,.07],[1320,1320,.14]], jump:[[300,700,.16,'square']], hit:[[220,60,.25,'sawtooth']], win:[[523,523,.1],[659,659,.1],[784,784,.1],[1047,1047,.25]], lose:[[400,100,.5,'sawtooth']], boom:[[120,30,.5,'sawtooth']], click:[[600,600,.04,'square']], die:[[440,220,.18,'sawtooth'],[330,110,.25,'sawtooth'],[220,40,.7,'sawtooth']]};
   const play = n => { const seq = P[n]; if (!seq || muted) return; try {
     ac ||= new (window.AudioContext || window.webkitAudioContext)(); ac.resume?.(); let t = ac.currentTime;
     for (const [f1, f2, d, ty = 'sine'] of seq) { const o = ac.createOscillator(), g = ac.createGain(); o.type = ty; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + d);
@@ -335,7 +341,7 @@ const saveDraft = () => LS.set('rb_draft', {title:S.title, desc:S.desc, price:S.
 /* ===== legal pages + settings helpers ===== */
 const CONTACT_EMAIL = '';   // put your support email here, e.g. 'support@yourdomain.com'
 const contact = CONTACT_EMAIL ? `at ${CONTACT_EMAIL}` : 'with the report button in a game';
-const FOOT = '<footer class="foot"><a href="#/terms">Terms of Service</a> · <a href="#/copyright">Copyright policy</a> · <a href="#/privacy">Privacy notice</a> · <a href="#/settings">Settings</a> · RoBlocks version 13</footer>';
+const FOOT = '<footer class="foot"><a href="#/terms">Terms of Service</a> · <a href="#/copyright">Copyright policy</a> · <a href="#/privacy">Privacy notice</a> · <a href="#/settings">Settings</a> · RoBlocks version 14</footer>';
 const legal = (title, parts) => `<h1>${title}</h1><div class="post legal"><small class="muted">Last updated October 8, 2026</small>${parts.map(([h, p]) => `<h2>${h}</h2><p>${p}</p>`).join('')}</div>`;
 const LEGAL = {
   terms: ['Terms of Service', [
@@ -581,6 +587,7 @@ const Game = (() => {
     hvy -= 22 * dt; p.y = Math.max(.6, p.y + hvy * dt); if (p.y <= .6) hvy = 0;
   }
   const stat = t => $('g-stat').textContent = t;
+  const setHp = v => { v = Math.max(0, Math.min(100, v)); $('hp-fill').style.width = v + '%'; $('hp-fill').style.background = `hsl(${v * 1.2},70%,45%)`; $('hp-num').textContent = Math.ceil(v); };
   function makePlayer(o = outfit()) {                        // real 3D character: legs, arms, torso, head, face, hair, hat
     const I = s => item(o[s]), c = x => parseInt(x.slice(1), 16), grp = new THREE.Group();
     const pa = I('pants'), sh = I('shirt'), hr = I('hair'), hat = I('hat'), sk = c(I('skin').color);
@@ -735,7 +742,7 @@ const Game = (() => {
       const ks = [0, 1, 2].map(() => { const k = box(.3, .3, .3, 0xffd54a); k.material.emissive = new THREE.Color(0xffaa00); k.position.set(rnd2(), .7, rnd2()); scene.add(k); return k; });
       const ghost = box(.8, 2, .8, 0xe8e8e8); ghost.material.transparent = true; ghost.material.opacity = .6; ghost.position.set(14, 1, 14); scene.add(ghost);
       const door = box(2.2, 2.6, .3, 0x5d4037); door.position.set(0, 1.3, -18); scene.add(door);
-      let got = 0, over = false, won = false, v = new THREE.Vector3();
+      let got = 0, over = false, won = false, hp = 100, touching = false, v = new THREE.Vector3();
       return {
         tap() { if (over || won) start(g); },
         update(dt) {
@@ -743,9 +750,9 @@ const Game = (() => {
           fl.position.copy(camera.position); camera.getWorldDirection(v); fl.target.position.copy(camera.position).addScaledVector(v, 6);
           ks.forEach((k, i) => { if (k.visible && near(k, player, 1)) { k.visible = false; got++; } k.rotation.y += dt * 2; });
           chase(ghost, player, 1.5 + got * .8 + g.diff * .3, dt); ghost.position.y = 1 + Math.sin(performance.now() / 300) * .15;
-          if (near(ghost, player, 1.1)) over = true;
+          const hitNow = near(ghost, player, 1.1); if (hitNow) { hp -= 45 * dt; if (!touching) Sfx.play('hit'); } touching = hitNow; setHp(hp); if (hp <= 0) { over = true; Sfx.play('die'); }
           if (got === 3 && near(door, player, 2.2)) won = true;
-          stat(over ? 'You were caught · tap to retry' : won ? 'You escaped! · tap to play again' : `Keys ${got}/3 · ${got === 3 ? 'Run to the door!' : 'Find the keys'}`);
+          stat(over ? 'You died · tap to retry' : won ? 'You escaped! · tap to play again' : `Keys ${got}/3 · ${got === 3 ? 'Run to the door!' : 'Find the keys'}`);
         }};
     },
     survival(g) {
@@ -760,7 +767,7 @@ const Game = (() => {
           if (over || won) return; walk(dt, 6); t += dt; hunger -= (2 + g.diff) * dt;
           for (let i = food.length - 1; i >= 0; i--) if (near(food[i], player, .9)) { scene.remove(food[i]); food.splice(i, 1); hunger = Math.min(100, hunger + 25); spawnFood(); }
           wolves.forEach(w => { chase(w, player, 2 + g.diff * .35, dt); if (near(w, player, 1)) hp -= 18 * dt; });
-          if (hunger <= 0) hp -= 8 * dt; if (hp <= 0) over = true; if (t >= 90) won = true;
+          if (hunger <= 0) hp -= 8 * dt; setHp(hp); if (hp <= 0) { over = true; Sfx.play('die'); } if (t >= 90) won = true;
           stat(over ? 'You did not survive · tap to retry' : won ? 'You survived! · tap to play again' : `HP ${Math.ceil(hp)} · Hunger ${Math.ceil(Math.max(0, hunger))} · ${Math.ceil(90 - t)}s left`);
         }};
     },
@@ -835,12 +842,13 @@ const Game = (() => {
       ground = new THREE.Mesh(new THREE.PlaneGeometry(size, size), mat(0x7ec850)); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground); if (['builder', 'shooter', 'adventure'].includes(g.genre) === false) {} else if (g.genre !== 'adventure') scenery(34, 5, 5);
       const gr = new THREE.GridHelper(size, size, 0x2f6b2f, 0x2f6b2f); gr.position.y = .01; scene.add(gr);
     }
+    const bar = ['horror', 'survival'].includes(g.genre); $('hpbar').hidden = !bar; $('game').classList.toggle('hasbar', bar); setHp(100);
     mode = modes[g.genre](g); netJoin(g); $('game').dataset.g = g.genre; $('g-title').textContent = g.title || 'RoBlocks Studio';
     camera.position.set(0, 9, 9); $('game').classList.add('open'); document.body.classList.add('playing'); resize(); clock.start(); loop();
   }
   function stop() {
     cancelAnimationFrame(raf); $('game').classList.remove('open'); document.body.classList.remove('playing'); pad.x = pad.z = 0; $('knob').style.transform = '';
-    Net.leave(); remotes.clear(); Menu.leave(); if (cur && cur.save) { cur.save(); saveDraft(); } if (location.hash === '#/studio') render();
+    $('hpbar').hidden = true; $('game').classList.remove('hasbar'); Net.leave(); remotes.clear(); Menu.leave(); if (cur && cur.save) { cur.save(); saveDraft(); } if (location.hash === '#/studio') render();
   }
   return {start, stop, makePlayer, peerNames: () => [...remotes.values()].map(r => r.name)};
 })();
