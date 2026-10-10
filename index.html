@@ -146,6 +146,8 @@ body.touch .swatches{left:auto;right:16px;bottom:calc(120px + env(safe-area-inse
 .hpbar[hidden]{display:none}.hp-track{width:120px;height:12px;border-radius:6px;background:rgba(255,255,255,.2);overflow:hidden}
 .hp-fill{height:100%;width:100%;background:#2ecc71;border-radius:6px;transition:width .15s,background .15s}
 #game.hasbar .hud-title{display:none}#game.hasbar #g-stat{top:calc(64px + env(safe-area-inset-top,0px))}
+.gear{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:var(--hover);color:var(--text);text-decoration:none}.gear:hover{filter:brightness(.94)}
+.gear svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 </style>
 <link rel="icon" id="fav">
 </head>
@@ -233,11 +235,12 @@ const BASE = [
   mk('wild-island','Wild Island','survival',2,2,'Eat, outrun the wolves and survive 90 seconds.'),
   mk('crystal-quest','Crystal Quest','adventure',2,5,'Collect 5 gems, then enter the glowing portal.')];
 const userGames = () => LS.get('rb_games', []);
-const allGames = () => [...userGames(), ...BASE];
+let CLOUD = [];
+const allGames = () => { const seen = new Set(), out = []; for (const g of [...userGames(), ...CLOUD, ...BASE]) if (!seen.has(g.id)) { seen.add(g.id); out.push(g); } return out; };
 const findGame = id => allGames().find(g => g.id === id);
 const getUsers = () => LS.get('rb_users', {});
 const me = () => { const k = LS.get('rb_session', null); const u = k && getUsers()[k]; if (u) { u.bucks ??= 100; u.owned ??= []; u.avatar ??= {}; u.body ??= 'male'; u.joined ??= Date.now(); u.plays ??= {}; } return u || null; };
-const saveUser = u => { const all = getUsers(); all[u.name.toLowerCase()] = u; LS.set('rb_users', all); };
+const saveUser = u => { const all = getUsers(); all[u.name.toLowerCase()] = u; LS.set('rb_users', all); if (u.cloud) pushProfile(u); };
 /* ===== avatar items: price 0 = free, otherwise cost in Gems (💎) ===== */
 const SLOTS = {skin:'Avatars', hair:'Hair', shirt:'Shirts', pants:'Pants', hat:'Hats'};
 const HAT = {cap:[.42,.1], crown:[.4,.16], tall:[.3,.34]};
@@ -269,6 +272,7 @@ const item = id => ITEMS.find(i => i.id === id);
 const outfit = () => { const u = me(); return {...(DEFS[u?.body] || DEFS.male), ...(u?.avatar || {})}; };
 /* owner rank: any account named RoBlocks gets the crown */
 const CROWN = '<svg class="crown" viewBox="0 0 24 24" role="img" aria-label="Owner"><title>Owner</title><path d="M3 18l-1-11 5 4 5-8 5 8 5-4-1 11z"/></svg>';
+const GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 const isOwner = n => String(n).toLowerCase() === 'roblocks';
 const who = n => (isOwner(n) ? CROWN : '') + esc(n);
 const norm = n => n.toLowerCase().replace(/[_\s]/g, '').replace(/0/g, 'o').replace(/[1il|]/g, 'l');
@@ -293,6 +297,7 @@ const figure = o => {
 };
 /* ===== NEWS: add a new post at the TOP of this list whenever you update ===== */
 const POSTS = [
+  {date:'2026-10-08', tag:'Update', title:'Real accounts and shared games', body:['Accounts now live on our server, so you can log in with the same display name and password on any phone or computer, and your avatar, items and Gems come with you.','Games published in RoBlocks Studio are now shared: everyone sees them in Discover. The Settings button also got a new look.']},
   {date:'2026-10-08', tag:'Update', title:'Health bars and a dying sound', body:['Survival and Horror games now show a health bar in the top left corner that changes from green to red as you get hurt.','In Horror, the ghost now drains your health instead of catching you instantly, so you can run away. When your health reaches zero you hear a dying sound effect.']},
   {date:'2026-10-08', tag:'Update', title:'Settings, Terms of Service and Copyright policy', body:['New Settings page (tap the gear in the top bar): change your display name, password and email, switch between light and dark mode, turn sound effects on or off, download your data, or delete your account.','You can now read the Terms of Service, Copyright policy and Privacy notice from the links at the bottom of every page and when you sign up.']},
   {date:'2026-10-08', tag:'Update', title:'Gems, a huge Studio world and a fixed game menu', body:['Ro-Bucks are now called Gems everywhere: the wallet, shop prices and game prices.','The building world in RoBlocks Studio is now 240 by 240, about 25 times bigger, with faster movement and room for up to 2,000 blocks. Games made in the Studio play on the same big map.','The menu in the top right corner of every game (logo, players, chat and sound) is rebuilt so it always shows on top.']},
@@ -341,7 +346,7 @@ const saveDraft = () => LS.set('rb_draft', {title:S.title, desc:S.desc, price:S.
 /* ===== legal pages + settings helpers ===== */
 const CONTACT_EMAIL = '';   // put your support email here, e.g. 'support@yourdomain.com'
 const contact = CONTACT_EMAIL ? `at ${CONTACT_EMAIL}` : 'with the report button in a game';
-const FOOT = '<footer class="foot"><a href="#/terms">Terms of Service</a> · <a href="#/copyright">Copyright policy</a> · <a href="#/privacy">Privacy notice</a> · <a href="#/settings">Settings</a> · RoBlocks version 14</footer>';
+const FOOT = '<footer class="foot"><a href="#/terms">Terms of Service</a> · <a href="#/copyright">Copyright policy</a> · <a href="#/privacy">Privacy notice</a> · <a href="#/settings">Settings</a> · RoBlocks version 15</footer>';
 const legal = (title, parts) => `<h1>${title}</h1><div class="post legal"><small class="muted">Last updated October 8, 2026</small>${parts.map(([h, p]) => `<h2>${h}</h2><p>${p}</p>`).join('')}</div>`;
 const LEGAL = {
   terms: ['Terms of Service', [
@@ -359,7 +364,7 @@ const LEGAL = {
     ['What we do', 'We review reports, may remove or disable the content, and tell the creator. Creators can reply with a short explanation if they believe the report is a mistake, and content may be restored if the report does not hold up.'],
     ['Repeat copying', 'Accounts that copy other people’s work again and again may be suspended or removed.']]],
   privacy: ['Privacy notice', [
-    ['What stays on your device', 'In this version of RoBlocks your account, avatar, friends, Gems, games you made and settings are stored in your own browser. Your password is stored as a salted hash, not as plain text.'],
+    ['What we store', 'When the server is available, your display name, avatar, Gems, items and the games you publish are saved on our server (Supabase), and your password is handled by its login system, never stored as plain text. Friends, game history and settings stay in your own browser for now.'],
     ['What other players can see', 'When you join a game, the other players in that game can see your display name, your outfit, where you are and the chat messages you send. This is sent live through our realtime service and is not saved as a chat history by RoBlocks.'],
     ['Other services', 'RoBlocks loads fonts and code libraries from outside services, which can see your IP address when your browser fetches them. We do not run ads and we do not sell your information.'],
     ['Staying safe', 'Never share personal information such as your real name, address, school or phone number in chat.'],
@@ -489,6 +494,12 @@ $('auth-form').addEventListener('submit', async e => {
   const fail = m => $('a-err').textContent = m;
   if (!/^[A-Za-z0-9_]{3,20}$/.test(name)) return fail('Display name must be 3–20 letters, numbers or underscores.');
   if (pass.length < 6) return fail('Password must be at least 6 characters.');
+  if (sb) {
+    if (signup && norm(name) === 'roblocks' && key !== 'roblocks') return fail('That name is reserved.');
+    if (signup && censor(name) !== name) return fail('That name is not allowed.');
+    try { await cloudAuth(name, pass, mail, $('a-body').value === 'female' ? 'female' : 'male', signup); $('a-pass').value = ''; $('auth').close(); userbar(); render(); loadCloud(); const go0 = pending; pending = null; if (go0) go0(); return; }
+    catch (err) { if (!serverDown(err)) return fail(cloudMsg(err)); }   // server not reachable or not set up: use the on-device account instead
+  }
   if (signup) {
     if (norm(name) === 'roblocks' && key !== 'roblocks') return fail('That name is reserved.');
     if (censor(name) !== name) return fail('That name is not allowed.');
@@ -502,10 +513,10 @@ $('auth-form').addEventListener('submit', async e => {
 });
 function userbar() {
   const u = me();
-  $('userbar').innerHTML = u ? `<button class="btn-2" id="wallet">💎 ${u.bucks}</button><a id="uname" href="#/profile" style="color:inherit;text-decoration:none">${who(u.name)}</a><a class="btn-2" id="gear" href="#/settings" aria-label="Settings" style="display:inline-flex;align-items:center;text-decoration:none">⚙️</a><button class="btn-2" id="logout">Log out</button>` : `<button class="btn" id="login">Log in</button>`;
+  $('userbar').innerHTML = u ? `<button class="btn-2" id="wallet">💎 ${u.bucks}</button><a id="uname" href="#/profile" style="color:inherit;text-decoration:none">${who(u.name)}</a><a class="gear" id="gear" href="#/settings" aria-label="Settings" title="Settings">${GEAR}</a><button class="btn-2" id="logout">Log out</button>` : `<button class="btn" id="login">Log in</button>`;
 }
 $('userbar').addEventListener('click', e => {
-  if (e.target.id === 'logout') { LS.set('rb_session', null); userbar(); render(); }
+  if (e.target.id === 'logout') { sb?.auth.signOut(); LS.set('rb_session', null); userbar(); render(); }
   if (e.target.id === 'login') requireAuth(() => {});
   if (e.target.id === 'wallet') openBucks();
 });
@@ -564,6 +575,47 @@ const Net = (() => {
     leave() { cb = {}; if (ch && sb) sb.removeChannel(ch); ch = null; status = 'offline'; }
   };
 })();
+
+/* ===== real accounts on the server (Supabase Auth + profiles + shared games) ===== */
+const rowOf = u => ({body: u.body, avatar: u.avatar || {}, owned: u.owned || [], bucks: Math.max(0, Math.floor(u.bucks) || 0), contact_email: u.email || null});
+let lastPush = '', pushT;
+function pushProfile(u, now) {                   // keeps avatar, items and Gems saved on the server
+  const row = rowOf(u), str = JSON.stringify(row); if (!sb || str === lastPush) return; clearTimeout(pushT);
+  const go = () => sb.from('profiles').update(row).eq('id', u.uid).then(({error}) => { if (!error) lastPush = str; }, () => {});
+  now ? go() : (pushT = setTimeout(go, 600));
+}
+async function pullProfile() {
+  const {data: {user}} = await sb.auth.getUser(); if (!user) return false;
+  const {data: p, error} = await sb.from('profiles').select('*').eq('id', user.id).single(); if (error) throw error;
+  const all = getUsers(), old = all[p.name_lc] || {};
+  const u = {...old, name: p.name, uid: p.id, cloud: true, authEmail: p.email, body: p.body, avatar: p.avatar || {}, owned: p.owned || [], bucks: p.bucks, joined: Date.parse(p.joined) || Date.now(), email: p.contact_email, plays: old.plays || {}};
+  all[p.name_lc] = u; LS.set('rb_users', all); LS.set('rb_session', p.name_lc); lastPush = JSON.stringify(rowOf(u)); return true;
+}
+async function cloudAuth(name, pass, mail, body, up) {
+  const key = name.toLowerCase(), {data: em, error: e0} = await sb.rpc('login_email', {p_name: name}); if (e0) throw e0;
+  if (up) {
+    if (em) throw {taken: true};
+    const email = key + '@users.roblocks.app', {data, error} = await sb.auth.signUp({email, password: pass}); if (error) throw error;
+    if (!data.session) throw {setup: true, message: 'The server needs "Confirm email" turned off. See the setup steps.'};
+    const {error: e2} = await sb.from('profiles').insert({id: data.user.id, name, name_lc: key, email, contact_email: mail || null, body}); if (e2) { await sb.auth.signOut(); throw e2; }
+  } else {
+    if (!em) throw {bad: true};
+    const {error} = await sb.auth.signInWithPassword({email: em, password: pass}); if (error) throw {bad: true};
+  }
+  await pullProfile();
+}
+const cloudMsg = e => e.taken || /already registered|23505/i.test(`${e.code} ${e.message}`) ? 'That display name is taken.' : e.bad ? 'Display name or password is incorrect.' : e.setup ? e.message : 'Something went wrong. Try again.';
+const serverDown = e => !e || /TypeError|Retryable/.test(e.name || '') || e.status === 0 || /PGRST|42883|42P01|schema cache|does not exist|Failed to fetch|NetworkError|Load failed/i.test(`${e.code} ${e.message}`);
+const cleanGame = r => {                         // games from other players are untrusted: clamp everything
+  const d = r.data || {}, n = (v, a, b, f) => Math.min(b, Math.max(a, Math.floor(+v) || f));
+  return {id: String(r.id).slice(0, 60), author: String(r.author).slice(0, 20), title: String(d.title || 'Untitled').slice(0, 40), desc: String(d.desc || '').slice(0, 140), genre: GENRES[d.genre] ? d.genre : 'custom',
+    diff: n(d.diff, 1, 3, 2), c: n(d.c, 0, 5, 0), price: n(d.price, 0, 500, 0), script: String(d.script || '').slice(0, 2000),
+    blocks: (Array.isArray(d.blocks) ? d.blocks : []).slice(0, 2000).map(b => Array.isArray(b) ? b.slice(0, 4).map(Number) : []).filter(b => b.length === 4 && b.every(Number.isFinite))};
+};
+async function loadCloud() {
+  if (!sb) return;
+  try { const {data, error} = await sb.from('games').select('id,author,data').order('created', {ascending: false}).limit(200); if (error) throw error; CLOUD = data.map(cleanGame); if (!$('game').classList.contains('open')) render(); } catch {}
+}
 
 /* ===== 3D game: one scaffold, a mode per genre ===== */
 const Game = (() => {
@@ -1050,6 +1102,7 @@ function publishStudio() {
     const g = {id: S.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24) + '-' + Date.now().toString(36), title: S.title.trim().slice(0, 40), genre: 'custom', diff: 2, c: Math.min(5, Math.max(0, +S.c || 0)),
       desc: (S.desc || '').trim().slice(0, 140), price: Math.min(500, Math.max(0, Math.floor(+S.price) || 0)), author: me().name, blocks: S.blocks, script: String(S.script).slice(0, 2000)};
     LS.set('rb_games', [g, ...userGames()]);
+    if (me().cloud) sb.from('games').insert({id: g.id, author_id: me().uid, author: g.author, data: g}).then(() => {}, () => {});
     Object.assign(S, {title: '', desc: '', price: 0, c: 0, blocks: [], script: DEFAULT_SCRIPT}); saveDraft();
     location.hash = '#/home'; render(); openGame(g);
   });
@@ -1072,7 +1125,7 @@ document.addEventListener('click', e => {                        // RoBlocks acc
 /* ===== Settings actions ===== */
 const msg = (id, t, ok) => { const el = $(id); if (el) { el.textContent = t; el.classList.toggle('ok', !!ok); } };
 const rawUser = u => getUsers()[u.name.toLowerCase()];
-const passOk = async (u, p) => { const r = rawUser(u); return !!r && r.hash === await sha(r.salt + p); };
+const passOk = async (u, p) => { if (u.cloud) { const {error} = await sb.auth.signInWithPassword({email: u.authEmail, password: p}); return !error; } const r = rawUser(u); return !!r && r.hash === await sha(r.salt + p); };
 document.addEventListener('submit', async e => {
   const id = e.target.id; if (!id || !id.startsWith('set-')) return; e.preventDefault();
   const u = me(), f = new FormData(e.target); if (!u) return;
@@ -1084,18 +1137,20 @@ document.addEventListener('submit', async e => {
     if (norm(nn) === 'roblocks' && !isOwner(u.name)) return msg('m-name', 'That name is reserved.');
     if (censor(nn) !== nn) return msg('m-name', 'That name is not allowed.');
     if (getUsers()[key] && key !== u.name.toLowerCase()) return msg('m-name', 'That display name is taken.');
+    if (u.cloud) { const {error} = await sb.from('profiles').update({name: nn, name_lc: key}).eq('id', u.uid); if (error) return msg('m-name', error.code === '23505' ? 'That display name is taken.' : 'Could not change your name. Try again.'); sb.from('games').update({author: nn}).eq('author_id', u.uid).then(() => {}, () => {}); }
     renameUser(u.name, nn); userbar(); render(); msg('m-name', `Your display name is now ${nn}.`, true);
   }
   if (id === 'set-pass') {
     const np = f.get('np');
     if (!(await passOk(u, f.get('pass')))) return msg('m-pass', 'Your current password is not right.');
     if (np.length < 6) return msg('m-pass', 'The new password must be at least 6 characters.');
+    if (u.cloud) { const {error} = await sb.auth.updateUser({password: np}); if (error) return msg('m-pass', 'Could not change the password. Try again.'); e.target.reset(); return msg('m-pass', 'Password changed.', true); }
     const all = getUsers(), r = all[u.name.toLowerCase()], salt = [...crypto.getRandomValues(new Uint8Array(8))].map(b => b.toString(16).padStart(2, '0')).join('');
     r.salt = salt; r.hash = await sha(salt + np); LS.set('rb_users', all); e.target.reset(); msg('m-pass', 'Password changed.', true);
   }
   if (id === 'set-mail') {
     const m = f.get('mail').trim(); if (m && !/^\S+@\S+\.\S+$/.test(m)) return msg('m-mail', 'Enter a valid email, or leave it empty.');
-    const all = getUsers(); all[u.name.toLowerCase()].email = m || null; LS.set('rb_users', all); msg('m-mail', m ? 'Email saved.' : 'Email removed.', true);
+    const all = getUsers(); all[u.name.toLowerCase()].email = m || null; LS.set('rb_users', all); if (u.cloud) pushProfile({...u, email: m || null}, true); msg('m-mail', m ? 'Email saved.' : 'Email removed.', true);
   }
 });
 document.addEventListener('change', e => {
@@ -1105,7 +1160,7 @@ document.addEventListener('change', e => {
 document.addEventListener('click', async e => {
   if (e.target.closest('.lg')) $('auth').close();
   const id = e.target.id, u = me();
-  if (id === 'set-logout') { LS.set('rb_session', null); userbar(); location.hash = '#/home'; render(); }
+  if (id === 'set-logout') { sb?.auth.signOut(); LS.set('rb_session', null); userbar(); location.hash = '#/home'; render(); }
   if (id === 'set-export' && u) {
     const {hash, salt, ...safe} = rawUser(u), a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify({account: safe, games: userGames().filter(g => g.author === u.name)}, null, 2)], {type: 'application/json'}));
@@ -1114,11 +1169,19 @@ document.addEventListener('click', async e => {
   if (id === 'set-delete' && u) {
     if (!(await passOk(u, $('set-del-pass').value))) return msg('m-del', 'That password is not right.');
     if (!confirm('Delete your account for good? This cannot be undone.')) return;
+    if (u.cloud) { const {error} = await sb.rpc('delete_me'); if (error) return msg('m-del', 'Could not delete the account. Try again.'); await sb.auth.signOut(); }
     const all = getUsers(); delete all[u.name.toLowerCase()];
     for (const a of Object.values(all)) { a.friends = (a.friends || []).filter(f => f.name !== u.name); a.requests = (a.requests || []).filter(r => r.from !== u.name); }
     LS.set('rb_users', all); LS.set('rb_games', userGames().filter(g => g.author !== u.name)); LS.set('rb_session', null); userbar(); location.hash = '#/home'; render();
   }
 });
+
+if (sb) {                                        // restore a server login and load everyone's games
+  sb.auth.getSession().then(async ({data}) => {
+    try { if (data.session) { await pullProfile(); userbar(); render(); } else if (me()?.cloud) { LS.set('rb_session', null); userbar(); render(); } } catch {}
+  }, () => {});
+  loadCloud();
+}
 
 userbar(); render();
 </script>
