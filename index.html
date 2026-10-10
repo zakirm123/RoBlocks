@@ -148,6 +148,15 @@ body.touch .swatches{left:auto;right:16px;bottom:calc(120px + env(safe-area-inse
 #game.hasbar .hud-title{display:none}#game.hasbar #g-stat{top:calc(64px + env(safe-area-inset-top,0px))}
 .gear{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:var(--hover);color:var(--text);text-decoration:none}.gear:hover{filter:brightness(.94)}
 .gear svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.sidebar{display:flex;flex-direction:column}
+.side-links{margin-top:auto;display:grid;gap:2px;padding-top:12px;border-top:1px solid var(--line)}
+.side-links a{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:var(--r);color:var(--text);text-decoration:none;font-weight:500;font-size:15px}.side-links a:hover{background:var(--hover)}
+.soc{width:20px;height:20px;flex:none;stroke:none}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.fcard{display:grid;gap:4px;justify-items:center;text-align:center;padding:12px 8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.fcard .f-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fcard .btn,.fcard .btn-2{height:30px;padding:0 12px;font-size:13px;margin-top:4px}
+.headbox{width:76px;height:84px;border-radius:12px;background:var(--hover);display:grid;place-items:center;overflow:hidden;margin-bottom:4px}.head{width:68px;height:auto}
+@media (max-width:1024px){.sidebar{display:block}.side-links{display:none}.nav{grid-template-columns:repeat(7,1fr)}.nav a{font-size:10px}}
 </style>
 <link rel="icon" id="fav">
 </head>
@@ -161,11 +170,13 @@ body.touch .swatches{left:auto;right:16px;bottom:calc(120px + env(safe-area-inse
   <aside class="sidebar"><nav aria-label="Primary"><ul class="nav">
     <li><a href="#/home" data-r="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>Home</a></li>
     <li><a href="#/discover" data-r="discover"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Discover</a></li>
+    <li><a href="#/people" data-r="people"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.5 3.2-5.5 6.5-5.5s5.900 2 6.500 5.500M17 5a3.500 3.500 0 010 6M21.500 20c-.3-2.200-1.400-3.800-3-4.600"/></svg>People</a></li>
     <li><a href="#/avatar" data-r="avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Avatar</a></li>
     <li><a href="#/news" data-r="news"><svg viewBox="0 0 24 24"><path d="M5 4h11v16H5zM16 9h3v9a2 2 0 01-2 2M8 8h5M8 12h5M8 16h5"/></svg>News</a></li>
     <li><a href="#/create" data-r="create"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Create</a></li>
       <li><a href="#/profile" data-r="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.5"/><path d="M5 20c1-3.5 4-5 7-5s6 1.5 7 5"/><circle cx="12" cy="12" r="10"/></svg>Profile</a></li>
-  </ul></nav></aside>
+  </ul></nav>
+    <div class="side-links"><a href="https://www.reddit.com/user/ZakirStudioOfficial/" target="_blank" rel="noopener noreferrer"><svg class="soc" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#ff4500"/><ellipse cx="12" cy="13.5" rx="6" ry="4.2" fill="#fff"/><circle cx="9.6" cy="13" r="1.1" fill="#ff4500"/><circle cx="14.4" cy="13" r="1.1" fill="#ff4500"/><path d="M9.5 15.4c1.5 1 3.5 1 5 0" stroke="#ff4500" stroke-width=".9" fill="none" stroke-linecap="round"/><circle cx="6.2" cy="11.2" r="1.5" fill="#fff"/><circle cx="17.8" cy="11.2" r="1.5" fill="#fff"/><circle cx="16.6" cy="5.4" r="1.2" fill="#fff"/><path d="M12 9.3l1.1-4.2 3.3.8" stroke="#fff" stroke-width=".9" fill="none" stroke-linecap="round"/></svg>Reddit</a><a href="https://discord.gg/CgAJV8X57" target="_blank" rel="noopener noreferrer"><svg class="soc" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#5865f2"/><path d="M17.2 7.3a11 11 0 0 0-2.7-.8l-.4.8a10 10 0 0 0-3.1 0l-.4-.8a11 11 0 0 0-2.7.8C6.1 9.8 5.6 12.2 5.8 14.6a11 11 0 0 0 3.3 1.7l.7-1.1a7 7 0 0 1-1.1-.5l.3-.2a7.8 7.8 0 0 0 6.6 0l.3.2a7 7 0 0 1-1.1.5l.7 1.1a11 11 0 0 0 3.3-1.7c.3-2.8-.5-5.2-1.6-7.3z" fill="#fff"/><circle cx="9.8" cy="12.2" r="1.2" fill="#5865f2"/><circle cx="14.2" cy="12.2" r="1.2" fill="#5865f2"/></svg>Discord</a></div></aside>
   <main id="view"></main>
 </div>
 
@@ -297,6 +308,7 @@ const figure = o => {
 };
 /* ===== NEWS: add a new post at the TOP of this list whenever you update ===== */
 const POSTS = [
+  {date:'2026-10-08', tag:'Update', title:'People, RoBlocks heads and our community links', body:['New People page: search for players and send friend requests. When someone accepts, you see their RoBlocks head with their username and whether they are online or offline, on any device.','Find us on Reddit and Discord: the links are at the bottom of the sidebar (and at the bottom of every page on phones).']},
   {date:'2026-10-08', tag:'Update', title:'Real accounts and shared games', body:['Accounts now live on our server, so you can log in with the same display name and password on any phone or computer, and your avatar, items and Gems come with you.','Games published in RoBlocks Studio are now shared: everyone sees them in Discover. The Settings button also got a new look.']},
   {date:'2026-10-08', tag:'Update', title:'Health bars and a dying sound', body:['Survival and Horror games now show a health bar in the top left corner that changes from green to red as you get hurt.','In Horror, the ghost now drains your health instead of catching you instantly, so you can run away. When your health reaches zero you hear a dying sound effect.']},
   {date:'2026-10-08', tag:'Update', title:'Settings, Terms of Service and Copyright policy', body:['New Settings page (tap the gear in the top bar): change your display name, password and email, switch between light and dark mode, turn sound effects on or off, download your data, or delete your account.','You can now read the Terms of Service, Copyright policy and Privacy notice from the links at the bottom of every page and when you sign up.']},
@@ -346,7 +358,7 @@ const saveDraft = () => LS.set('rb_draft', {title:S.title, desc:S.desc, price:S.
 /* ===== legal pages + settings helpers ===== */
 const CONTACT_EMAIL = '';   // put your support email here, e.g. 'support@yourdomain.com'
 const contact = CONTACT_EMAIL ? `at ${CONTACT_EMAIL}` : 'with the report button in a game';
-const FOOT = '<footer class="foot"><a href="#/terms">Terms of Service</a> · <a href="#/copyright">Copyright policy</a> · <a href="#/privacy">Privacy notice</a> · <a href="#/settings">Settings</a> · RoBlocks version 15</footer>';
+const FOOT = '<footer class="foot"><a href="#/terms">Terms of Service</a> · <a href="#/copyright">Copyright policy</a> · <a href="#/privacy">Privacy notice</a> · <a href="#/settings">Settings</a> · <a href="https://www.reddit.com/user/ZakirStudioOfficial/" target="_blank" rel="noopener noreferrer">Reddit</a> · <a href="https://discord.gg/CgAJV8X57" target="_blank" rel="noopener noreferrer">Discord</a> · RoBlocks version 16</footer>';
 const legal = (title, parts) => `<h1>${title}</h1><div class="post legal"><small class="muted">Last updated October 8, 2026</small>${parts.map(([h, p]) => `<h2>${h}</h2><p>${p}</p>`).join('')}</div>`;
 const LEGAL = {
   terms: ['Terms of Service', [
@@ -364,7 +376,7 @@ const LEGAL = {
     ['What we do', 'We review reports, may remove or disable the content, and tell the creator. Creators can reply with a short explanation if they believe the report is a mistake, and content may be restored if the report does not hold up.'],
     ['Repeat copying', 'Accounts that copy other people’s work again and again may be suspended or removed.']]],
   privacy: ['Privacy notice', [
-    ['What we store', 'When the server is available, your display name, avatar, Gems, items and the games you publish are saved on our server (Supabase), and your password is handled by its login system, never stored as plain text. Friends, game history and settings stay in your own browser for now.'],
+    ['What we store', 'When the server is available, your display name, avatar, Gems, items and the games you publish are saved on our server (Supabase), and your password is handled by its login system, never stored as plain text. Your friendships and friend requests are saved on our server too, so they work on every device. Game history and settings stay in your own browser.'],
     ['What other players can see', 'When you join a game, the other players in that game can see your display name, your outfit, where you are and the chat messages you send. This is sent live through our realtime service and is not saved as a chat history by RoBlocks.'],
     ['Other services', 'RoBlocks loads fonts and code libraries from outside services, which can see your IP address when your browser fetches them. We do not run ads and we do not sell your information.'],
     ['Staying safe', 'Never share personal information such as your real name, address, school or phone number in chat.'],
@@ -410,6 +422,7 @@ const views = {
   news() {
     return `<h1>News</h1>${POSTS.map(p => `<article class="post"><span class="tag2">${esc(p.tag)}</span><time datetime="${p.date}">${new Date(p.date + 'T00:00').toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'})}</time><h2>${esc(p.title)}</h2>${p.body.map(t => `<p>${esc(t)}</p>`).join('')}</article>`).join('')}`;
   },
+  people() { return `<h1>People</h1><form class="friend-form" id="people-form"><input class="in" id="people-q" placeholder="Search by display name" maxlength="20" aria-label="Search people"><button class="btn" type="submit">Search</button></form><div id="people-list"><p class="muted">Loading…</p></div>`; },
   terms() { return legal(...LEGAL.terms); }, copyright() { return legal(...LEGAL.copyright); }, privacy() { return legal(...LEGAL.privacy); },
   settings() {
     const u = me(), t = LS.get('rb_theme', 'auto');
@@ -473,6 +486,7 @@ function render() {
   document.querySelectorAll('.nav a').forEach(a => a.dataset.r === (name === 'studio' ? 'create' : name) ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   scrollTo(0, 0);
   if (name === 'avatar' || name === 'profile') AvatarView.mount();
+  if (name === 'people') loadPeople();
 }
 addEventListener('hashchange', render);
 $('q').addEventListener('input', e => { state.q = e.target.value; location.hash === '#/discover' ? render() : (location.hash = '#/discover'); });
@@ -516,7 +530,7 @@ function userbar() {
   $('userbar').innerHTML = u ? `<button class="btn-2" id="wallet">💎 ${u.bucks}</button><a id="uname" href="#/profile" style="color:inherit;text-decoration:none">${who(u.name)}</a><a class="gear" id="gear" href="#/settings" aria-label="Settings" title="Settings">${GEAR}</a><button class="btn-2" id="logout">Log out</button>` : `<button class="btn" id="login">Log in</button>`;
 }
 $('userbar').addEventListener('click', e => {
-  if (e.target.id === 'logout') { sb?.auth.signOut(); LS.set('rb_session', null); userbar(); render(); }
+  if (e.target.id === 'logout') { sb?.auth.signOut(); leaveOnline(); LS.set('rb_session', null); userbar(); render(); }
   if (e.target.id === 'login') requireAuth(() => {});
   if (e.target.id === 'wallet') openBucks();
 });
@@ -554,7 +568,7 @@ document.addEventListener('submit', e => {
 /* ===== multiplayer: Supabase Realtime (presence + broadcast). The key below is the PUBLIC publishable key. ===== */
 const SB_URL = 'https://ebyfuyzvcgtishqvlnia.supabase.co', SB_KEY = 'sb_publishable_Gq4aIcDEjzfZtaVbnB2o3g_7GfCk_Wn';
 const sb = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
-const cleanOutfit = o => { const r = {...DEFS.male}; for (const k of Object.keys(SLOTS)) { const it = item(o?.[k]); if (it && it.slot === k) r[k] = it.id; } return r; };   // never trust other players' data
+const cleanOutfit = (o, body = 'male') => { const r = {...(DEFS[body] || DEFS.male)}; for (const k of Object.keys(SLOTS)) { const it = item(o?.[k]); if (it && it.slot === k) r[k] = it.id; } return r; };   // never trust other players' data
 const Net = (() => {
   let ch = null, status = 'offline', cb = {}, lastPos = 0; const myId = Math.random().toString(36).slice(2, 10), seen = {};
   const num = v => Math.max(-80, Math.min(80, +v || 0));
@@ -589,7 +603,7 @@ async function pullProfile() {
   const {data: p, error} = await sb.from('profiles').select('*').eq('id', user.id).single(); if (error) throw error;
   const all = getUsers(), old = all[p.name_lc] || {};
   const u = {...old, name: p.name, uid: p.id, cloud: true, authEmail: p.email, body: p.body, avatar: p.avatar || {}, owned: p.owned || [], bucks: p.bucks, joined: Date.parse(p.joined) || Date.now(), email: p.contact_email, plays: old.plays || {}};
-  all[p.name_lc] = u; LS.set('rb_users', all); LS.set('rb_session', p.name_lc); lastPush = JSON.stringify(rowOf(u)); return true;
+  all[p.name_lc] = u; LS.set('rb_users', all); LS.set('rb_session', p.name_lc); lastPush = JSON.stringify(rowOf(u)); joinOnline(); loadFriends(); return true;
 }
 async function cloudAuth(name, pass, mail, body, up) {
   const key = name.toLowerCase(), {data: em, error: e0} = await sb.rpc('login_email', {p_name: name}); if (e0) throw e0;
@@ -616,6 +630,56 @@ async function loadCloud() {
   if (!sb) return;
   try { const {data, error} = await sb.from('games').select('id,author,data').order('created', {ascending: false}).limit(200); if (error) throw error; CLOUD = data.map(cleanGame); if (!$('game').classList.contains('open')) render(); } catch {}
 }
+
+/* ===== friends, People and online status on the server ===== */
+let FR = [], PEOPLE = [], ONLINE = new Set(), chOn = null;
+const cleanPerson = r => ({other: String(r.other ?? r.id), name: String(r.name).slice(0, 20), body: r.body === 'female' ? 'female' : 'male', avatar: r.avatar || {}, status: r.status === 'accepted' ? 'accepted' : 'pending', incoming: !!r.incoming});
+const headOf = p => figure(cleanOutfit(p.avatar, p.body)).replace('viewBox="0 0 120 190" class="fig" role="img" aria-label="Your avatar"', 'viewBox="28 -10 64 74" class="head" aria-hidden="true"');
+const frState = id => { const f = FR.find(x => x.other === id); return !f ? 'none' : f.status === 'accepted' ? 'friend' : f.incoming ? 'incoming' : 'sent'; };
+function personCard(p, kind) {                   // RoBlocks head, username and Online / Offline
+  const on = ONLINE.has(p.other), st = frState(p.other), id = esc(p.other);
+  const act = kind === 'friend' ? `<button class="btn-2" data-fa="remove" data-id="${id}">Remove</button>`
+    : st === 'friend' ? '<button class="btn-2" disabled>Friends</button>' : st === 'sent' ? '<button class="btn-2" disabled>Requested</button>'
+    : st === 'incoming' ? `<button class="btn" data-fa="accept" data-id="${id}">Accept</button><button class="btn-2" data-fa="decline" data-id="${id}">Decline</button>`
+    : `<button class="btn" data-fa="add" data-id="${id}">Add Friend</button>`;
+  return `<div class="fcard"><div class="headbox">${headOf(p)}</div><b class="f-name">${who(p.name)}</b><div class="f-status"><span class="dot${on ? ' on' : ''}" aria-hidden="true"></span> ${on ? 'Online' : 'Offline'}</div>${act}</div>`;
+}
+function cloudFriends() {
+  const reqs = FR.filter(f => f.status === 'pending' && f.incoming), fr = FR.filter(f => f.status === 'accepted').sort((a, b) => ONLINE.has(b.other) - ONLINE.has(a.other) || a.name.localeCompare(b.name));
+  return `<section class="row" id="friends"><h2>Friends${reqs.length ? ` <span class="badge" title="Pending requests">${reqs.length}</span>` : ''}</h2>
+    ${reqs.length ? `<h3 class="sub">Friend requests</h3><div class="fgrid">${reqs.map(p => personCard(p, 'req')).join('')}</div>` : ''}
+    ${fr.length ? `<div class="fgrid" style="margin-top:12px">${fr.map(p => personCard(p, 'friend')).join('')}</div>` : '<p class="muted">No friends yet. Find people to add.</p>'}
+    <a class="btn" style="display:inline-flex;align-items:center;height:40px;margin-top:12px" href="#/people">Find people</a></section>`;
+}
+async function loadFriends() {
+  if (!sb || !me()?.cloud) return;
+  try { const {data, error} = await sb.rpc('my_friendships'); if (error) throw error; FR = (data || []).map(cleanPerson); refreshFriends(); drawPeople(); } catch {}
+}
+async function loadPeople(q = '') {
+  const box = $('people-list'); if (!box) return;
+  if (!me()) { box.innerHTML = '<p class="muted">Log in to find people.</p><button class="btn" id="friends-login" type="button">Log in</button>'; return; }
+  if (!me().cloud) { box.innerHTML = '<p class="muted">People needs a RoBlocks server account. The server may be offline right now.</p>'; return; }
+  try { const {data, error} = await sb.rpc('search_people', {q: q.trim().slice(0, 20)}); if (error) throw error; PEOPLE = (data || []).map(cleanPerson); drawPeople(); }
+  catch { box.innerHTML = '<p class="empty">Could not load people. Try again later.</p>'; }
+}
+function drawPeople() { const box = $('people-list'); if (box && me()?.cloud && PEOPLE.length !== undefined && !box.querySelector('.empty')) box.innerHTML = PEOPLE.length ? `<div class="fgrid">${PEOPLE.map(p => personCard(p, 'people')).join('')}</div>` : '<p class="empty">No one found.</p>'; }
+function joinOnline() {                          // who is online right now, on any device
+  if (!sb || chOn || !me()?.cloud) return;
+  chOn = sb.channel('rb-online', {config: {presence: {key: me().uid}}});
+  chOn.on('presence', {event: 'sync'}, () => { ONLINE = new Set(Object.keys(chOn.presenceState())); refreshFriends(); drawPeople(); }).subscribe(st => { if (st === 'SUBSCRIBED') chOn.track({t: Date.now()}); });
+}
+function leaveOnline() { if (chOn && sb) sb.removeChannel(chOn); chOn = null; ONLINE = new Set(); FR = []; }
+document.addEventListener('submit', e => { if (e.target.id === 'people-form') { e.preventDefault(); loadPeople($('people-q').value); } });
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-fa]'); if (!b || !me()?.cloud) return;
+  const id = b.dataset.id, a = b.dataset.fa, my = me().uid; if (!/^[0-9a-f-]{36}$/.test(id)) return; b.disabled = true;
+  try {
+    if (a === 'add') await sb.from('friendships').insert({a: my, b: id});
+    if (a === 'accept') await sb.from('friendships').update({status: 'accepted'}).eq('a', id).eq('b', my);
+    if (a === 'decline' || a === 'remove') await sb.from('friendships').delete().or(`and(a.eq.${my},b.eq.${id}),and(a.eq.${id},b.eq.${my})`);
+  } catch {}
+  loadFriends();
+});
 
 /* ===== 3D game: one scaffold, a mode per genre ===== */
 const Game = (() => {
@@ -995,6 +1059,7 @@ function removeFriend(name) {                    // removes you from each other'
 
 function friendsPanel() {
   if (!me()) return `<section class="row" id="friends"><h2>Friends</h2><p class="muted">Log in to add friends.</p><button class="btn" id="friends-login" type="button">Log in</button></section>`;
+  if (me().cloud) return cloudFriends();
   syncFriendStatus();
   const u = me(), rq = u.requests || [];
   const reqs = rq.map(r => `<li class="friend"><span class="f-name">${who(r.from)}</span><span class="f-status">wants to be friends</span><button class="btn req-accept" type="button" data-name="${esc(r.from)}">Accept</button><button class="btn-2 req-decline" type="button" data-name="${esc(r.from)}">Decline</button></li>`).join('');
@@ -1046,7 +1111,7 @@ function deliverOutbox() {                       // send saved requests once the
   }
   if (changed) LS.set('rb_users', all);
 }
-function beat() { deliverOutbox(); const u = me(); if (u) { u.lastSeen = Date.now(); saveUser(u); } refreshIdle(); }
+function beat() { deliverOutbox(); if (sb && me()?.cloud) loadFriends(); const u = me(); if (u) { u.lastSeen = Date.now(); saveUser(u); } refreshIdle(); }
 beat(); setInterval(beat, 30000);
 addEventListener('storage', e => { if (e.key === 'rb_users') refreshIdle(); });
 
@@ -1160,7 +1225,7 @@ document.addEventListener('change', e => {
 document.addEventListener('click', async e => {
   if (e.target.closest('.lg')) $('auth').close();
   const id = e.target.id, u = me();
-  if (id === 'set-logout') { sb?.auth.signOut(); LS.set('rb_session', null); userbar(); location.hash = '#/home'; render(); }
+  if (id === 'set-logout') { sb?.auth.signOut(); leaveOnline(); LS.set('rb_session', null); userbar(); location.hash = '#/home'; render(); }
   if (id === 'set-export' && u) {
     const {hash, salt, ...safe} = rawUser(u), a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify({account: safe, games: userGames().filter(g => g.author === u.name)}, null, 2)], {type: 'application/json'}));
